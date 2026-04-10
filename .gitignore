@@ -1,36 +1,21 @@
-# Build
+*.lscache
 bin/
 obj/
-
-# Visual Studio
 .vs/
-.vscode/
-*.user
-*.suo
-
-# Test results
 TestResults/
 *.trx
-
-# Coverage
 coverage/
 coverage.cobertura.xml
-
-# Databases
 *.db
 *.sqlite
 *.sqlite3
 *.mdf
 *.ldf
-
-# Logs
 *.log
-
-# Publish / artifacts
 publish/
 artifacts/
 *.zip
-
-# OS files
 .DS_Store
 Thumbs.db
+*.user
+*.suo

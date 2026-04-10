@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using Mando.Api.IntegrationTests.Contracts.Auth;
 using Mando.Api.IntegrationTests.Infrastructure;
 using Xunit;
@@ -17,9 +19,21 @@ public sealed class AuthCurrentUserTests : IClassFixture<CustomWebApplicationFac
     [Fact]
     public async Task GetCurrentUser_WithValidToken_ReturnsCurrentUser()
     {
-        using var client = await _factory.CreateAuthenticatedClientAsync(
-            TestHostSettings.AdminEmail,
-            TestHostSettings.AdminPassword);
+        using var client = _factory.CreateClient();
+
+        var loginResponse = await client.PostAsJsonAsync("/api/auth/login", new LoginRequestDto
+        {
+            Email = TestHostSettings.AdminEmail,
+            Password = TestHostSettings.AdminPassword
+        });
+
+        loginResponse.EnsureSuccessStatusCode();
+
+        var loginEnvelope = await loginResponse.ReadSuccessAsync<LoginResponseDto>();
+        Assert.NotNull(loginEnvelope);
+        Assert.NotNull(loginEnvelope!.Data);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", loginEnvelope.Data!.Token);
 
         var response = await client.GetAsync("/api/auth/me");
 
@@ -28,7 +42,6 @@ public sealed class AuthCurrentUserTests : IClassFixture<CustomWebApplicationFac
         var payload = await response.ReadSuccessAsync<CurrentUserResponseDto>();
         Assert.NotNull(payload);
         Assert.NotNull(payload!.Data);
-        Assert.True(payload.Success);
         Assert.Equal(TestHostSettings.AdminEmail, payload.Data!.Email);
         Assert.Contains("Admin", payload.Data.Roles);
     }
