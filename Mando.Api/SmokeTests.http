@@ -1,0 +1,211 @@
+@baseUrl = https://localhost:5001
+
+### Health
+GET {{baseUrl}}/
+Accept: application/json
+
+### Login - Admin
+# @name loginAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@mando.local",
+  "password": "Admin123"
+}
+
+###
+
+@adminToken = {{loginAdmin.response.body.token}}
+
+### Login - Manager
+# @name loginManager
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "manager@mando.local",
+  "password": "Manager123"
+}
+
+###
+
+@managerToken = {{loginManager.response.body.token}}
+
+### Login - SalesRep Ali
+# @name loginAli
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ali@mando.local",
+  "password": "Sales123"
+}
+
+###
+
+@salesRepToken = {{loginAli.response.body.token}}
+
+### Get My Customers - paged
+GET {{baseUrl}}/api/customers?pageNumber=1&pageSize=10
+Authorization: Bearer {{salesRepToken}}
+Accept: application/json
+
+### Get My Visits - paged
+GET {{baseUrl}}/api/visits?pageNumber=1&pageSize=10
+Authorization: Bearer {{salesRepToken}}
+Accept: application/json
+
+### Get Products - active only
+GET {{baseUrl}}/api/products?pageNumber=1&pageSize=10&activeOnly=true
+Authorization: Bearer {{salesRepToken}}
+Accept: application/json
+
+### IMPORTANT
+# قبل الخطوات التالية:
+# 1) خذ customerId من /api/customers
+# 2) خذ productId من /api/products
+# 3) ضع الإحداثيات الفعلية للعميل من قاعدة البيانات أو response إن كانت موجودة
+
+@customerId = 00000000-0000-0000-0000-000000000000
+@productId = 00000000-0000-0000-0000-000000000000
+@customerLatitude = 33.3152
+@customerLongitude = 44.3661
+
+### Start Visit
+# @name startVisit
+POST {{baseUrl}}/api/visits/start
+Authorization: Bearer {{salesRepToken}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "latitude": {{customerLatitude}},
+  "longitude": {{customerLongitude}},
+  "accuracyInMeters": 20,
+  "notes": "Smoke test visit start"
+}
+
+###
+
+@visitId = {{startVisit.response.body.id}}
+
+### Try starting second active visit - must fail
+POST {{baseUrl}}/api/visits/start
+Authorization: Bearer {{salesRepToken}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "latitude": {{customerLatitude}},
+  "longitude": {{customerLongitude}},
+  "accuracyInMeters": 20,
+  "notes": "Second active visit should fail"
+}
+
+### Create Order inside active visit
+# @name createOrder
+POST {{baseUrl}}/api/orders
+Authorization: Bearer {{salesRepToken}}
+Content-Type: application/json
+
+{
+  "visitId": "{{visitId}}",
+  "paymentType": 2,
+  "notes": "Smoke test order",
+  "items": [
+    {
+      "productId": "{{productId}}",
+      "quantity": 2
+    }
+  ]
+}
+
+###
+
+@orderId = {{createOrder.response.body.id}}
+
+### Get Orders - paged
+GET {{baseUrl}}/api/orders?pageNumber=1&pageSize=10
+Authorization: Bearer {{salesRepToken}}
+Accept: application/json
+
+### Create Payment inside active visit
+# @name createPayment
+POST {{baseUrl}}/api/payments
+Authorization: Bearer {{salesRepToken}}
+Content-Type: application/json
+
+{
+  "visitId": "{{visitId}}",
+  "amount": 10,
+  "paymentMethod": 1,
+  "reference": "SMOKE-001",
+  "notes": "Smoke test payment"
+}
+
+###
+
+@paymentId = {{createPayment.response.body.id}}
+
+### Get Payments - paged
+GET {{baseUrl}}/api/payments?pageNumber=1&pageSize=10
+Authorization: Bearer {{salesRepToken}}
+Accept: application/json
+
+### Approve Payment as Manager
+PATCH {{baseUrl}}/api/payments/{{paymentId}}/approve
+Authorization: Bearer {{managerToken}}
+Content-Type: application/json
+
+{}
+
+### End Visit
+POST {{baseUrl}}/api/visits/{{visitId}}/end
+Authorization: Bearer {{salesRepToken}}
+Content-Type: application/json
+
+{
+  "latitude": {{customerLatitude}},
+  "longitude": {{customerLongitude}},
+  "accuracyInMeters": 20,
+  "outcome": 1,
+  "notes": "Smoke test visit end"
+}
+
+### Create and cancel a fresh visit
+# @name startCancelVisit
+POST {{baseUrl}}/api/visits/start
+Authorization: Bearer {{salesRepToken}}
+Content-Type: application/json
+
+{
+  "customerId": "{{customerId}}",
+  "latitude": {{customerLatitude}},
+  "longitude": {{customerLongitude}},
+  "accuracyInMeters": 20,
+  "notes": "Visit to cancel"
+}
+
+###
+
+@cancelVisitId = {{startCancelVisit.response.body.id}}
+
+### Cancel Visit
+POST {{baseUrl}}/api/visits/{{cancelVisitId}}/cancel
+Authorization: Bearer {{salesRepToken}}
+Content-Type: application/json
+
+{
+  "notes": "Cancelled by smoke test"
+}
+
+### Notifications
+GET {{baseUrl}}/api/notifications?pageNumber=1&pageSize=10
+Authorization: Bearer {{salesRepToken}}
+Accept: application/json
+
+### Audit Logs - Admin/Manager only
+GET {{baseUrl}}/api/auditlogs?pageNumber=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+Accept: application/json

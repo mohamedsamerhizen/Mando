@@ -1,0 +1,96 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Common\" />
+    <Folder Include="Configurations\" />
+    <Folder Include="Configurations\Identity\" />
+    <Folder Include="Controllers\" />
+    <Folder Include="Data\" />
+    <Folder Include="Data\Seeders\" />
+    <Folder Include="DTOs\" />
+    <Folder Include="DTOs\Audit\" />
+    <Folder Include="DTOs\Auth\" />
+    <Folder Include="DTOs\Common\" />
+    <Folder Include="DTOs\Customers\" />
+    <Folder Include="DTOs\Dashboard\" />
+    <Folder Include="DTOs\Notifications\" />
+    <Folder Include="DTOs\Operations\" />
+    <Folder Include="DTOs\Orders\" />
+    <Folder Include="DTOs\Payments\" />
+    <Folder Include="DTOs\Products\" />
+    <Folder Include="DTOs\Reports\" />
+    <Folder Include="DTOs\Users\" />
+    <Folder Include="DTOs\Visits\" />
+    <Folder Include="Entities\" />
+    <Folder Include="Entities\Identity\" />
+    <Folder Include="Enums\" />
+    <Folder Include="Extensions\" />
+    <Folder Include="Filters\" />
+    <Folder Include="Helpers\" />
+    <Folder Include="Interfaces\" />
+    <Folder Include="Interfaces\Audit\" />
+    <Folder Include="Interfaces\Auth\" />
+    <Folder Include="Interfaces\Common\" />
+    <Folder Include="Interfaces\Customers\" />
+    <Folder Include="Interfaces\Dashboard\" />
+    <Folder Include="Interfaces\Exceptions\" />
+    <Folder Include="Interfaces\Financials\" />
+    <Folder Include="Interfaces\Notifications\" />
+    <Folder Include="Interfaces\Operations\" />
+    <Folder Include="Interfaces\Orders\" />
+    <Folder Include="Interfaces\Payments\" />
+    <Folder Include="Interfaces\Products\" />
+    <Folder Include="Interfaces\Reports\" />
+    <Folder Include="Interfaces\Users\" />
+    <Folder Include="Interfaces\Visits\" />
+    <Folder Include="Middleware\" />
+    <Folder Include="Models\" />
+    <Folder Include="Models\Audit\" />
+    <Folder Include="Models\Auth\" />
+    <Folder Include="Models\Customers\" />
+    <Folder Include="Models\Dashboard\" />
+    <Folder Include="Models\Financials\" />
+    <Folder Include="Models\Notifications\" />
+    <Folder Include="Models\Operations\" />
+    <Folder Include="Models\Orders\" />
+    <Folder Include="Models\Payments\" />
+    <Folder Include="Models\Products\" />
+    <Folder Include="Models\Reports\" />
+    <Folder Include="Models\Users\" />
+    <Folder Include="Models\Visits\" />
+    <Folder Include="Services\" />
+    <Folder Include="Services\Audit\" />
+    <Folder Include="Services\Auth\" />
+    <Folder Include="Services\Common\" />
+    <Folder Include="Services\Customers\" />
+    <Folder Include="Services\Dashboard\" />
+    <Folder Include="Services\Financials\" />
+    <Folder Include="Services\Health\" />
+    <Folder Include="Services\Notifications\" />
+    <Folder Include="Services\Operations\" />
+    <Folder Include="Services\Orders\" />
+    <Folder Include="Services\Payments\" />
+    <Folder Include="Services\Products\" />
+    <Folder Include="Services\Reports\" />
+    <Folder Include="Services\Users\" />
+    <Folder Include="Services\Visits\" />
+  </ItemGroup>
+
+</Project>
