@@ -18,7 +18,15 @@ public static class ApplicationBuilderExtensions
     public static async Task UseMandoApiPipelineAsync(this WebApplication app)
     {
         app.UseCorrelationId();
-        app.UseExceptionHandler();
+
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+        else
+        {
+            app.UseExceptionHandler();
+        }
 
         if (app.Environment.IsDevelopment())
         {

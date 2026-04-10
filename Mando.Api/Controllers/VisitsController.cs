@@ -188,14 +188,21 @@ public class VisitsController : CurrentUserAwareControllerBase
     [HttpPost("{id:guid}/images")]
     [Authorize(Roles = AppRoles.SalesRep)]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<VisitImageResponseDto>> UploadImage(Guid id, [FromForm] IFormFile? file)
+    [ProducesResponseType(typeof(VisitImageResponseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<VisitImageResponseDto>> UploadImage(
+        Guid id,
+        [FromForm] UploadVisitImageRequest request)
     {
         var currentUser = await GetCurrentUserAsync();
         if (currentUser is null)
             return Unauthorized();
 
         var baseUrl = $"{Request.Scheme}://{Request.Host}";
-        var result = await _visitMediaService.UploadImageAsync(id, file, baseUrl, currentUser);
+        var result = await _visitMediaService.UploadImageAsync(id, request.File, baseUrl, currentUser);
 
         return MapMediaResult(result);
     }
@@ -417,7 +424,6 @@ public class VisitsController : CurrentUserAwareControllerBase
             _ => Problem("Unexpected visit media delete result.")
         };
     }
-
 
     private IActionResult MapImageContentResult(VisitMediaResult<VisitImageContentPayload> result)
     {

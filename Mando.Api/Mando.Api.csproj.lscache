@@ -285,6 +285,7 @@ DTOs/Visits/
  GetVisitOperationsReportQueryDto.cs
  GetVisitsQueryDto.cs
  StartVisitRequestDto.cs
+ UploadVisitImageRequest.cs
  VisitActionHistoryResponseDto.cs
  VisitActiveAgingBucketDto.cs
  VisitImageResponseDto.cs

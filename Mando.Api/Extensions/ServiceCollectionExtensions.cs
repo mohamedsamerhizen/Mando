@@ -91,6 +91,8 @@ public static class ServiceCollectionExtensions
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(options =>
         {
+            options.CustomSchemaIds(type => type.FullName?.Replace("+", ".") ?? type.Name);
+
             options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "Mando API",
