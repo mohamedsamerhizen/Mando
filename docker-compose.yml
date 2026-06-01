@@ -1,0 +1,54 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mando-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env}
+    ports:
+      - "14333:1433"
+    volumes:
+      - mando-sqlserver-data:/var/opt/mssql
+
+  api:
+    build:
+      context: .
+      dockerfile: Mando.Api/Dockerfile
+    container_name: mando-api
+    depends_on:
+      - sqlserver
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=MandoDb;User Id=sa;Password=${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD in .env};TrustServerCertificate=True;MultipleActiveResultSets=true"
+      Jwt__Key: ${JWT_KEY:?Set JWT_KEY in .env}
+      Jwt__Issuer: Mando.Api
+      Jwt__Audience: Mando.Client
+      Jwt__ExpiryMinutes: "180"
+      RateLimiting__Login__PermitLimit: ${RATE_LIMIT_LOGIN_PERMIT_LIMIT:-60}
+      RateLimiting__Login__WindowSeconds: ${RATE_LIMIT_LOGIN_WINDOW_SECONDS:-60}
+      RateLimiting__SensitiveMutation__PermitLimit: ${RATE_LIMIT_SENSITIVE_MUTATION_PERMIT_LIMIT:-120}
+      RateLimiting__SensitiveMutation__WindowSeconds: ${RATE_LIMIT_SENSITIVE_MUTATION_WINDOW_SECONDS:-60}
+      Startup__ApplyMigrationsOnStartup: "true"
+      Startup__RunSeedOnStartup: "true"
+      SeedData__Enabled: ${SEED_DATA_ENABLED:-false}
+      SeedAdmin__FullName: ${SEED_ADMIN_FULL_NAME:-System Admin}
+      SeedAdmin__Email: ${SEED_ADMIN_EMAIL:-admin@mando.local}
+      SeedAdmin__Password: ${SEED_ADMIN_PASSWORD:?Set SEED_ADMIN_PASSWORD in .env}
+      SeedManager__FullName: ${SEED_MANAGER_FULL_NAME:-Operations Manager}
+      SeedManager__Email: ${SEED_MANAGER_EMAIL:-manager@mando.local}
+      SeedManager__Password: ${SEED_MANAGER_PASSWORD:?Set SEED_MANAGER_PASSWORD in .env}
+      SeedSalesReps__0__FullName: ${SEED_SALES_REP_0_FULL_NAME:-Ali Hassan}
+      SeedSalesReps__0__Email: ${SEED_SALES_REP_0_EMAIL:-ali@mando.local}
+      SeedSalesReps__0__Password: ${SEED_SALES_REP_0_PASSWORD:?Set SEED_SALES_REP_0_PASSWORD in .env}
+      SeedSalesReps__1__FullName: ${SEED_SALES_REP_1_FULL_NAME:-Sara Ahmed}
+      SeedSalesReps__1__Email: ${SEED_SALES_REP_1_EMAIL:-sara@mando.local}
+      SeedSalesReps__1__Password: ${SEED_SALES_REP_1_PASSWORD:?Set SEED_SALES_REP_1_PASSWORD in .env}
+      SeedSalesReps__2__FullName: ${SEED_SALES_REP_2_FULL_NAME:-Omar Khalid}
+      SeedSalesReps__2__Email: ${SEED_SALES_REP_2_EMAIL:-omar@mando.local}
+      SeedSalesReps__2__Password: ${SEED_SALES_REP_2_PASSWORD:?Set SEED_SALES_REP_2_PASSWORD in .env}
+    ports:
+      - "8080:8080"
+
+volumes:
+  mando-sqlserver-data:

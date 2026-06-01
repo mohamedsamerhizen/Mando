@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -16,12 +17,26 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     private readonly IReadOnlyDictionary<string, string?> _configurationOverrides;
 
     public CustomWebApplicationFactory()
+        : this(configurationOverrides: null)
+    {
+    }
+
+    internal CustomWebApplicationFactory(IReadOnlyDictionary<string, string?>? configurationOverrides)
     {
         _databasePath = Path.Combine(
             Path.GetTempPath(),
             $"mando-integration-tests-{Guid.NewGuid():N}.db");
 
-        _configurationOverrides = TestHostSettings.BuildConfiguration(_databasePath);
+        var overrides = new Dictionary<string, string?>(TestHostSettings.BuildConfiguration(_databasePath));
+        if (configurationOverrides is not null)
+        {
+            foreach (var entry in configurationOverrides)
+            {
+                overrides[entry.Key] = entry.Value;
+            }
+        }
+
+        _configurationOverrides = overrides;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -44,6 +59,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ?? throw new InvalidOperationException("Testing connection string is missing.");
 
             services.RemoveAll<DbContextOptions<AppDbContext>>();
+            services.RemoveAll<IDbContextOptionsConfiguration<AppDbContext>>();
             services.RemoveAll<AppDbContext>();
 
             services.AddDbContext<AppDbContext>(options =>

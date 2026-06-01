@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Mando.Api.Common;
+using Mando.Api.Configurations;
 using Mando.Api.DTOs.Common;
 using Mando.Api.DTOs.Visits;
 using Mando.Api.Enums;
@@ -34,6 +36,7 @@ public class VisitsController : CurrentUserAwareControllerBase
 
     [HttpPost("start")]
     [Authorize(Roles = AppRoles.SalesRep)]
+    [EnableRateLimiting(RateLimitPolicyNames.SensitiveMutation)]
     public async Task<ActionResult<VisitResponseDto>> Start(StartVisitRequestDto request)
     {
         var currentUser = await GetCurrentUserAsync();
@@ -82,6 +85,7 @@ public class VisitsController : CurrentUserAwareControllerBase
 
     [HttpPost("{id:guid}/end")]
     [Authorize(Roles = AppRoles.SalesRep)]
+    [EnableRateLimiting(RateLimitPolicyNames.SensitiveMutation)]
     public async Task<ActionResult<VisitResponseDto>> End(Guid id, EndVisitRequestDto request)
     {
         var currentUser = await GetCurrentUserAsync();

@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-test-format:
+    name: Build, test, and format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore
+        run: dotnet restore Mando.sln
+
+      - name: Build
+        run: dotnet build Mando.sln --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test Mando.sln --no-build --configuration Release --verbosity normal
+
+      - name: Format check
+        run: dotnet format Mando.sln --verify-no-changes --no-restore --verbosity minimal

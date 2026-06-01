@@ -1,11 +1,16 @@
 using Microsoft.AspNetCore.HttpOverrides;
+using System.Globalization;
 using System.Net;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -130,10 +135,7 @@ public static class ServiceCollectionExtensions
             .Bind(configuration.GetSection(JwtSettings.SectionName))
             .ValidateDataAnnotations()
             .Validate(
-                settings => !string.Equals(
-                    settings.Key,
-                    "CHANGE_ME",
-                    StringComparison.OrdinalIgnoreCase),
+                settings => !UsesPlaceholderJwtKey(settings.Key),
                 "Jwt:Key must not use a placeholder value.")
             .ValidateOnStart();
 
@@ -152,6 +154,16 @@ public static class ServiceCollectionExtensions
             .AddOptions<ForwardedHeadersSettings>()
             .Bind(configuration.GetSection(ForwardedHeadersSettings.SectionName))
             .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services
+            .AddOptions<RateLimitSettings>()
+            .Bind(configuration.GetSection(RateLimitSettings.SectionName))
+            .ValidateDataAnnotations()
+            .Validate(
+                settings => IsRateLimitPolicyValid(settings.Login) &&
+                            IsRateLimitPolicyValid(settings.SensitiveMutation),
+                "RateLimiting permit limits and windows must be positive values.")
             .ValidateOnStart();
 
         services.AddSingleton<IValidateOptions<StartupExecutionSettings>, StartupExecutionSettingsValidator>();
@@ -175,6 +187,46 @@ public static class ServiceCollectionExtensions
                 options.KnownProxies.Add(knownProxy);
             }
         });
+
+        services.AddRateLimiter();
+        services
+            .AddOptions<RateLimiterOptions>()
+            .Configure<IOptions<RateLimitSettings>>((options, rateLimitOptions) =>
+            {
+                var settings = rateLimitOptions.Value;
+
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+                options.OnRejected = static async (context, cancellationToken) =>
+                {
+                    var httpContext = context.HttpContext;
+
+                    if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+                    {
+                        httpContext.Response.Headers.RetryAfter =
+                            Math.Ceiling(retryAfter.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+                    }
+
+                    httpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    httpContext.Response.ContentType = "application/json";
+
+                    var response = ApiResponseFactory.Build(
+                        httpContext,
+                        "rate_limit_exceeded",
+                        "Too many requests. Please wait before retrying.");
+
+                    await httpContext.Response.WriteAsJsonAsync(response, cancellationToken);
+                };
+
+                options.AddPolicy(RateLimitPolicyNames.Login, httpContext =>
+                    BuildFixedWindowPartition(
+                        BuildAnonymousPartitionKey(httpContext),
+                        settings.Login));
+
+                options.AddPolicy(RateLimitPolicyNames.SensitiveMutation, httpContext =>
+                    BuildFixedWindowPartition(
+                        BuildAuthenticatedEndpointPartitionKey(httpContext),
+                        settings.SensitiveMutation));
+            });
 
         var defaultConnectionString = configuration.GetConnectionString("DefaultConnection");
         if (string.IsNullOrWhiteSpace(defaultConnectionString))
@@ -211,14 +263,6 @@ public static class ServiceCollectionExtensions
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
 
-        var jwtSettings = configuration
-            .GetSection(JwtSettings.SectionName)
-            .Get<JwtSettings>()
-            ?? throw new InvalidOperationException("Jwt settings are missing.");
-
-        if (string.IsNullOrWhiteSpace(jwtSettings.Key))
-            throw new InvalidOperationException("Jwt:Key is missing.");
-
         services
             .AddAuthentication(options =>
             {
@@ -234,10 +278,6 @@ public static class ServiceCollectionExtensions
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings.Issuer,
-                    ValidAudience = jwtSettings.Audience,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtSettings.Key)),
                     ClockSkew = TimeSpan.Zero
                 };
 
@@ -311,7 +351,24 @@ public static class ServiceCollectionExtensions
                 };
             });
 
-        services.AddAuthorization();
+        services
+            .AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+            .Configure<IOptions<JwtSettings>>((options, jwtOptions) =>
+            {
+                var jwtSettings = jwtOptions.Value;
+
+                options.TokenValidationParameters.ValidIssuer = jwtSettings.Issuer;
+                options.TokenValidationParameters.ValidAudience = jwtSettings.Audience;
+                options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(jwtSettings.Key));
+            });
+
+        services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
 
         services.AddHealthChecks()
             .AddCheck(
@@ -368,5 +425,74 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOperationsAlertWorkflowService, OperationsAlertWorkflowService>();
 
         return services;
+    }
+
+    private static bool UsesPlaceholderJwtKey(string? key)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+            return false;
+
+        var normalized = key.Trim();
+
+        return normalized.Equals("CHANGE_ME", StringComparison.OrdinalIgnoreCase) ||
+               normalized.Contains("CHANGEME", StringComparison.OrdinalIgnoreCase) ||
+               normalized.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase) ||
+               normalized.Contains("REPLACE", StringComparison.OrdinalIgnoreCase) ||
+               normalized.Contains("PLACEHOLDER", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsRateLimitPolicyValid(RateLimitPolicySettings settings)
+    {
+        return settings.PermitLimit > 0 &&
+               settings.WindowSeconds > 0;
+    }
+
+    private static RateLimitPartition<string> BuildFixedWindowPartition(
+        string partitionKey,
+        RateLimitPolicySettings settings)
+    {
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = settings.PermitLimit,
+                Window = TimeSpan.FromSeconds(settings.WindowSeconds),
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                AutoReplenishment = true
+            });
+    }
+
+    private static string BuildAnonymousPartitionKey(HttpContext httpContext)
+    {
+        return $"ip:{GetRemoteIpAddress(httpContext)}:{httpContext.Request.Method}:{GetEndpointRoutePattern(httpContext)}";
+    }
+
+    private static string BuildAuthenticatedEndpointPartitionKey(HttpContext httpContext)
+    {
+        var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub);
+
+        var actorKey = string.IsNullOrWhiteSpace(userId)
+            ? $"ip:{GetRemoteIpAddress(httpContext)}"
+            : $"user:{userId}";
+
+        return $"{actorKey}:{httpContext.Request.Method}:{GetEndpointRoutePattern(httpContext)}";
+    }
+
+    private static string GetRemoteIpAddress(HttpContext httpContext)
+    {
+        return httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    }
+
+    private static string GetEndpointRoutePattern(HttpContext httpContext)
+    {
+        if (httpContext.GetEndpoint() is RouteEndpoint routeEndpoint &&
+            !string.IsNullOrWhiteSpace(routeEndpoint.RoutePattern.RawText))
+        {
+            return routeEndpoint.RoutePattern.RawText;
+        }
+
+        return httpContext.Request.Path.Value ?? "/";
     }
 }

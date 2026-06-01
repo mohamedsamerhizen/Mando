@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Mando.Api.Common;
+using Mando.Api.Configurations;
 using Mando.Api.DTOs.Common;
 using Mando.Api.DTOs.Payments;
 using Mando.Api.Entities;
@@ -115,6 +117,7 @@ public class PaymentsController : CurrentUserAwareControllerBase
 
     [HttpPatch("{id:guid}/approve")]
     [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Manager}")]
+    [EnableRateLimiting(RateLimitPolicyNames.SensitiveMutation)]
     public async Task<ActionResult<PaymentResponseDto>> Approve(Guid id, ApprovePaymentRequestDto request)
     {
         var currentUser = await GetCurrentUserAsync();
@@ -213,6 +216,7 @@ public class PaymentsController : CurrentUserAwareControllerBase
 
     [HttpPatch("{id:guid}/reject")]
     [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Manager}")]
+    [EnableRateLimiting(RateLimitPolicyNames.SensitiveMutation)]
     public async Task<ActionResult<PaymentResponseDto>> Reject(Guid id, RejectPaymentRequestDto request)
     {
         var currentUser = await GetCurrentUserAsync();
@@ -276,6 +280,7 @@ public class PaymentsController : CurrentUserAwareControllerBase
 
     [HttpPatch("{id:guid}/reverse")]
     [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Manager}")]
+    [EnableRateLimiting(RateLimitPolicyNames.SensitiveMutation)]
     public async Task<ActionResult<PaymentResponseDto>> ReverseApproved(Guid id, ReversePaymentRequestDto request)
     {
         var currentUser = await GetCurrentUserAsync();
@@ -334,6 +339,7 @@ public class PaymentsController : CurrentUserAwareControllerBase
 
     [HttpPatch("{id:guid}/void")]
     [Authorize(Roles = $"{AppRoles.Admin},{AppRoles.Manager}")]
+    [EnableRateLimiting(RateLimitPolicyNames.SensitiveMutation)]
     public async Task<ActionResult<PaymentResponseDto>> VoidApproved(Guid id, VoidApprovedPaymentRequestDto request)
     {
         var currentUser = await GetCurrentUserAsync();

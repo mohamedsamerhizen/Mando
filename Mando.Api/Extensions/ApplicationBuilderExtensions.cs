@@ -72,7 +72,10 @@ public static class ApplicationBuilderExtensions
 
         app.UseStaticFiles();
 
+        app.UseRouting();
+
         app.UseAuthentication();
+        app.UseRateLimiter();
         app.UseAuthorization();
 
         app.MapGet("/", (HttpContext httpContext) =>

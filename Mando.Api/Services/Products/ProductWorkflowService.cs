@@ -274,7 +274,7 @@ public class ProductWorkflowService : IProductWorkflowService
                 previousStatus: oldStatus,
                 newStatus: product.Status,
                 performedByUser: currentUser,
-                comment: $"Product status changed from '{oldStatus}' to '{product.Status}'."));                
+                comment: $"Product status changed from '{oldStatus}' to '{product.Status}'."));
 
             await _context.SaveChangesAsync();
 

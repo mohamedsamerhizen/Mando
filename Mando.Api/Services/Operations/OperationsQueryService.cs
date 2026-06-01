@@ -197,7 +197,8 @@ public class OperationsQueryService : IOperationsQueryService
         var orderReportResult = await _orderQueryService.GetOperationsReportAsync(
             new GetOrderOperationsReportQueryDto
             {
-                DateFromUtc = normalizedQuery.DateFromUtc,                DateToUtc = normalizedQuery.DateToUtc,
+                DateFromUtc = normalizedQuery.DateFromUtc,
+                DateToUtc = normalizedQuery.DateToUtc,
                 SalesRepId = normalizedQuery.SalesRepId,
                 CustomerId = normalizedQuery.CustomerId,
                 StaleAfterHours = normalizedQuery.OrderStaleAfterHours
@@ -397,7 +398,7 @@ public class OperationsQueryService : IOperationsQueryService
     }
 
     private static string? ValidateDashboardQuery(GetOperationsDashboardQueryDto query, bool requireDates = false)
-        {
+    {
         if (requireDates)
         {
             if (!query.DateFromUtc.HasValue)
@@ -596,7 +597,8 @@ public class OperationsQueryService : IOperationsQueryService
         var alerts = new List<OperationsAlertItemDto>();
 
         foreach (var payment in pendingPayments)
-        { var balanceSnapshot = balanceLookup.GetValueOrDefault(payment.CustomerId);
+        {
+            var balanceSnapshot = balanceLookup.GetValueOrDefault(payment.CustomerId);
             var currentBalance = balanceSnapshot?.CurrentBalance ?? 0m;
             var ageInHours = Math.Round((now - payment.CreatedAtUtc).TotalHours, 2);
 
@@ -795,7 +797,7 @@ public class OperationsQueryService : IOperationsQueryService
             })
             .ToListAsync();
 
-        return staleOrders            .Select(order =>
+        return staleOrders.Select(order =>
             {
                 var ageInHours = Math.Round((now - order.CreatedAtUtc).TotalHours, 2);
 
@@ -995,7 +997,7 @@ public class OperationsQueryService : IOperationsQueryService
                 Category = latestReview.Category,
                 EntityType = latestReview.EntityType,
                 EntityId = latestReview.EntityId,
-                                TriggeredAtUtc = latestReview.TriggeredAtUtc,
+                TriggeredAtUtc = latestReview.TriggeredAtUtc,
                 Status = latestReview.Status,
                 Comment = latestReview.Comment,
                 ReviewedByUserId = latestReview.ReviewedByUserId,
@@ -1194,7 +1196,8 @@ public class OperationsQueryService : IOperationsQueryService
         public PaymentMethod PaymentMethod { get; init; }
         public string? Reference { get; init; }
         public DateTime CreatedAtUtc { get; init; }
-    }    private sealed class OrderAlertRow
+    }
+    private sealed class OrderAlertRow
     {
         public Guid OrderId { get; init; }
         public string OrderNumber { get; init; } = string.Empty;
@@ -1392,7 +1395,7 @@ public class OperationsQueryService : IOperationsQueryService
         var dateToUtc = query.DateToUtc!.Value;
         var topCount = query.TopCount;
 
-        var topSalesRepsByVisits = await _context.Visits            .Include(x => x.SalesRep)
+        var topSalesRepsByVisits = await _context.Visits.Include(x => x.SalesRep)
             .Where(x => x.CheckInAtUtc >= dateFromUtc && x.CheckInAtUtc < dateToUtc)
             .GroupBy(x => new { x.SalesRepId, x.SalesRep.FullName })
             .Select(g => new TopSalesRepByVisitsDto

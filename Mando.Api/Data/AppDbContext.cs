@@ -8,6 +8,8 @@ namespace Mando.Api.Data;
 
 public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>
 {
+    private const string SqliteProviderName = "Microsoft.EntityFrameworkCore.Sqlite";
+
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
@@ -36,5 +38,33 @@ public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+        if (Database.ProviderName == SqliteProviderName)
+        {
+            ConfigureSqliteRowVersionDefaults(builder);
+        }
+    }
+
+    private static void ConfigureSqliteRowVersionDefaults(ModelBuilder builder)
+    {
+        builder.Entity<Customer>()
+            .Property(x => x.RowVersion)
+            .HasDefaultValueSql("randomblob(8)");
+
+        builder.Entity<Product>()
+            .Property(x => x.RowVersion)
+            .HasDefaultValueSql("randomblob(8)");
+
+        builder.Entity<Visit>()
+            .Property(x => x.RowVersion)
+            .HasDefaultValueSql("randomblob(8)");
+
+        builder.Entity<Order>()
+            .Property(x => x.RowVersion)
+            .HasDefaultValueSql("randomblob(8)");
+
+        builder.Entity<Payment>()
+            .Property(x => x.RowVersion)
+            .HasDefaultValueSql("randomblob(8)");
     }
 }

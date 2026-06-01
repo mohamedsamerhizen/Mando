@@ -710,9 +710,8 @@ public class PaymentWorkflowService : IPaymentWorkflowService
 
         _context.Entry(payment).Property(x => x.RowVersion).OriginalValue = originalRowVersion;
 
-        var balanceSnapshot = await _customerBalanceService.GetSnapshotAsync(payment.CustomerId);
-        var balanceBeforeReversal = balanceSnapshot?.CurrentBalance ?? 0m;
-        var balanceAfterReversal = balanceBeforeReversal + payment.Amount;
+        decimal balanceBeforeReversal = 0m;
+        decimal balanceAfterReversal = 0m;
         var previousStatus = payment.Status;
         var transitionVerb = useLegacyVoidTerminology ? "voided" : "reversed";
         var reasonPrefix = useLegacyVoidTerminology ? "Void reason" : "Reverse reason";
@@ -765,6 +764,17 @@ public class PaymentWorkflowService : IPaymentWorkflowService
             }
 
             _context.Entry(payment).Property(x => x.RowVersion).OriginalValue = originalRowVersion;
+
+            var balanceSnapshot = await _customerBalanceService.GetSnapshotAsync(payment.CustomerId);
+            if (balanceSnapshot is null)
+            {
+                await transaction.RollbackAsync();
+                return new PaymentWorkflowResult { Status = PaymentWorkflowStatus.CustomerNotFound };
+            }
+
+            balanceBeforeReversal = balanceSnapshot.CurrentBalance;
+            balanceAfterReversal = balanceBeforeReversal + payment.Amount;
+            previousStatus = payment.Status;
 
             payment.Status = newStatus;
             payment.ReviewedByUserId = currentUser.Id;

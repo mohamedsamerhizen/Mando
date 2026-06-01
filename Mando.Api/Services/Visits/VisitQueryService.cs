@@ -86,47 +86,47 @@ public class VisitQueryService : IVisitQueryService
             Data = MapVisit(visit, visit.Customer.Name, visit.SalesRep.FullName)
         };
     }
-public async Task<VisitQueryResult<IReadOnlyList<VisitActionHistoryResponseDto>>> GetHistoryAsync(
-    Guid visitId,
-    AppUser currentUser,
-    IEnumerable<string> currentUserRoles)
-{
-    var visit = await _context.Visits
-        .AsNoTracking()
-        .FirstOrDefaultAsync(x => x.Id == visitId);
-
-    if (visit is null)
-        return new VisitQueryResult<IReadOnlyList<VisitActionHistoryResponseDto>> { Status = VisitQueryStatus.VisitNotFound };
-
-    if (!IsAdminOrManager(currentUserRoles) && visit.SalesRepId != currentUser.Id)
-        return new VisitQueryResult<IReadOnlyList<VisitActionHistoryResponseDto>> { Status = VisitQueryStatus.Forbidden };
-
-    var history = await _context.VisitActionHistories
-        .Where(x => x.VisitId == visitId)
-        .OrderByDescending(x => x.ActionAtUtc)
-        .Select(x => new VisitActionHistoryResponseDto
-        {
-            Id = x.Id,
-            VisitId = x.VisitId,
-            ActionType = x.ActionType,
-            PreviousStatus = x.PreviousStatus,
-            NewStatus = x.NewStatus,
-            PreviousOutcome = x.PreviousOutcome,
-            NewOutcome = x.NewOutcome,
-            PerformedByUserId = x.PerformedByUserId,
-            PerformedByUserName = x.PerformedByUserFullName,
-            Comment = x.Comment,
-            ActionAtUtc = x.ActionAtUtc
-        })
-        .AsNoTracking()
-        .ToListAsync();
-
-    return new VisitQueryResult<IReadOnlyList<VisitActionHistoryResponseDto>>
+    public async Task<VisitQueryResult<IReadOnlyList<VisitActionHistoryResponseDto>>> GetHistoryAsync(
+        Guid visitId,
+        AppUser currentUser,
+        IEnumerable<string> currentUserRoles)
     {
-        Status = VisitQueryStatus.Success,
-        Data = history
-    };
-}
+        var visit = await _context.Visits
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == visitId);
+
+        if (visit is null)
+            return new VisitQueryResult<IReadOnlyList<VisitActionHistoryResponseDto>> { Status = VisitQueryStatus.VisitNotFound };
+
+        if (!IsAdminOrManager(currentUserRoles) && visit.SalesRepId != currentUser.Id)
+            return new VisitQueryResult<IReadOnlyList<VisitActionHistoryResponseDto>> { Status = VisitQueryStatus.Forbidden };
+
+        var history = await _context.VisitActionHistories
+            .Where(x => x.VisitId == visitId)
+            .OrderByDescending(x => x.ActionAtUtc)
+            .Select(x => new VisitActionHistoryResponseDto
+            {
+                Id = x.Id,
+                VisitId = x.VisitId,
+                ActionType = x.ActionType,
+                PreviousStatus = x.PreviousStatus,
+                NewStatus = x.NewStatus,
+                PreviousOutcome = x.PreviousOutcome,
+                NewOutcome = x.NewOutcome,
+                PerformedByUserId = x.PerformedByUserId,
+                PerformedByUserName = x.PerformedByUserFullName,
+                Comment = x.Comment,
+                ActionAtUtc = x.ActionAtUtc
+            })
+            .AsNoTracking()
+            .ToListAsync();
+
+        return new VisitQueryResult<IReadOnlyList<VisitActionHistoryResponseDto>>
+        {
+            Status = VisitQueryStatus.Success,
+            Data = history
+        };
+    }
     public async Task<VisitQueryResult<VisitTimelineResponseDto>> GetTimelineAsync(
         Guid visitId,
         string baseUrl,

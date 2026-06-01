@@ -1,4 +1,10 @@
 @baseUrl = https://localhost:5001
+@adminEmail = admin@mando.local
+@adminPassword =
+@managerEmail = manager@mando.local
+@managerPassword =
+@salesRepEmail = ali@mando.local
+@salesRepPassword =
 
 ### Health
 GET {{baseUrl}}/
@@ -10,13 +16,13 @@ POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@mando.local",
-  "password": "Admin123"
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
 }
 
 ###
 
-@adminToken = {{loginAdmin.response.body.token}}
+@adminToken = {{loginAdmin.response.body.data.token}}
 
 ### Login - Manager
 # @name loginManager
@@ -24,49 +30,44 @@ POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "manager@mando.local",
-  "password": "Manager123"
+  "email": "{{managerEmail}}",
+  "password": "{{managerPassword}}"
 }
 
 ###
 
-@managerToken = {{loginManager.response.body.token}}
+@managerToken = {{loginManager.response.body.data.token}}
 
-### Login - SalesRep Ali
-# @name loginAli
+### Login - SalesRep
+# @name loginSalesRep
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "email": "ali@mando.local",
-  "password": "Sales123"
+  "email": "{{salesRepEmail}}",
+  "password": "{{salesRepPassword}}"
 }
 
 ###
 
-@salesRepToken = {{loginAli.response.body.token}}
+@salesRepToken = {{loginSalesRep.response.body.data.token}}
+
+### Get Current User
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{salesRepToken}}
+Accept: application/json
 
 ### Get My Customers - paged
 GET {{baseUrl}}/api/customers?pageNumber=1&pageSize=10
 Authorization: Bearer {{salesRepToken}}
 Accept: application/json
 
-### Get My Visits - paged
-GET {{baseUrl}}/api/visits?pageNumber=1&pageSize=10
+### Get Products - paged
+GET {{baseUrl}}/api/products?pageNumber=1&pageSize=10
 Authorization: Bearer {{salesRepToken}}
 Accept: application/json
 
-### Get Products - active only
-GET {{baseUrl}}/api/products?pageNumber=1&pageSize=10&activeOnly=true
-Authorization: Bearer {{salesRepToken}}
-Accept: application/json
-
-### IMPORTANT
-# قبل الخطوات التالية:
-# 1) خذ customerId من /api/customers
-# 2) خذ productId من /api/products
-# 3) ضع الإحداثيات الفعلية للعميل من قاعدة البيانات أو response إن كانت موجودة
-
+### Set IDs from real responses before running workflow requests
 @customerId = 00000000-0000-0000-0000-000000000000
 @productId = 00000000-0000-0000-0000-000000000000
 @customerLatitude = 33.3152
@@ -88,20 +89,8 @@ Content-Type: application/json
 
 ###
 
-@visitId = {{startVisit.response.body.id}}
-
-### Try starting second active visit - must fail
-POST {{baseUrl}}/api/visits/start
-Authorization: Bearer {{salesRepToken}}
-Content-Type: application/json
-
-{
-  "customerId": "{{customerId}}",
-  "latitude": {{customerLatitude}},
-  "longitude": {{customerLongitude}},
-  "accuracyInMeters": 20,
-  "notes": "Second active visit should fail"
-}
+@visitId = {{startVisit.response.body.data.id}}
+@visitRowVersion = {{startVisit.response.body.data.rowVersion}}
 
 ### Create Order inside active visit
 # @name createOrder
@@ -123,12 +112,7 @@ Content-Type: application/json
 
 ###
 
-@orderId = {{createOrder.response.body.id}}
-
-### Get Orders - paged
-GET {{baseUrl}}/api/orders?pageNumber=1&pageSize=10
-Authorization: Bearer {{salesRepToken}}
-Accept: application/json
+@orderId = {{createOrder.response.body.data.id}}
 
 ### Create Payment inside active visit
 # @name createPayment
@@ -139,26 +123,29 @@ Content-Type: application/json
 {
   "visitId": "{{visitId}}",
   "amount": 10,
-  "paymentMethod": 1,
+  "paymentMethod": 2,
   "reference": "SMOKE-001",
   "notes": "Smoke test payment"
 }
 
 ###
 
-@paymentId = {{createPayment.response.body.id}}
-
-### Get Payments - paged
-GET {{baseUrl}}/api/payments?pageNumber=1&pageSize=10
-Authorization: Bearer {{salesRepToken}}
-Accept: application/json
+@paymentId = {{createPayment.response.body.data.id}}
+@paymentRowVersion = {{createPayment.response.body.data.rowVersion}}
 
 ### Approve Payment as Manager
 PATCH {{baseUrl}}/api/payments/{{paymentId}}/approve
 Authorization: Bearer {{managerToken}}
 Content-Type: application/json
 
-{}
+{
+  "rowVersion": "{{paymentRowVersion}}",
+  "reviewComment": "Smoke test approval",
+  "acknowledgeStalePayment": false,
+  "acknowledgeHighBalanceImpact": false,
+  "acknowledgeMultiplePendingPayments": false,
+  "acknowledgeDuplicateReference": false
+}
 
 ### End Visit
 POST {{baseUrl}}/api/visits/{{visitId}}/end
@@ -170,34 +157,8 @@ Content-Type: application/json
   "longitude": {{customerLongitude}},
   "accuracyInMeters": 20,
   "outcome": 1,
-  "notes": "Smoke test visit end"
-}
-
-### Create and cancel a fresh visit
-# @name startCancelVisit
-POST {{baseUrl}}/api/visits/start
-Authorization: Bearer {{salesRepToken}}
-Content-Type: application/json
-
-{
-  "customerId": "{{customerId}}",
-  "latitude": {{customerLatitude}},
-  "longitude": {{customerLongitude}},
-  "accuracyInMeters": 20,
-  "notes": "Visit to cancel"
-}
-
-###
-
-@cancelVisitId = {{startCancelVisit.response.body.id}}
-
-### Cancel Visit
-POST {{baseUrl}}/api/visits/{{cancelVisitId}}/cancel
-Authorization: Bearer {{salesRepToken}}
-Content-Type: application/json
-
-{
-  "notes": "Cancelled by smoke test"
+  "notes": "Smoke test visit end",
+  "rowVersion": "{{visitRowVersion}}"
 }
 
 ### Notifications

@@ -12,9 +12,14 @@ coverage.cobertura.xml
 *.mdf
 *.ldf
 *.log
+.env
+.env.*
+!.env.example
 publish/
 artifacts/
 *.zip
+Mando.Api/App_Data/
+Mando.Api/wwwroot/uploads/visit-images/
 .DS_Store
 Thumbs.db
 *.user

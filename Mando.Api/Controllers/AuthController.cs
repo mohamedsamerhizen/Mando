@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Mando.Api.Configurations;
 using Mando.Api.DTOs.Auth;
 using Mando.Api.Enums;
 using Mando.Api.Helpers;
@@ -20,6 +22,7 @@ public class AuthController : ControllerBase
 
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicyNames.Login)]
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
     {
         var result = await _authWorkflowService.LoginAsync(request);

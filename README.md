@@ -1,109 +1,214 @@
 # Mando API
 
-**Mando API** is a production-style ASP.NET Core Web API for managing field sales operations end-to-end — including authentication, customers, visits, orders, payments, notifications, reporting, operational dashboards, and auditability.
+Mando API is a production-style ASP.NET Core Web API for managing field sales operations end to end: authentication, users, customers, visits, orders, payments, notifications, reports, operations dashboards, and audit logs.
 
-This project was built to reflect **real backend engineering**, not tutorial-level CRUD.  
-It focuses on **workflow correctness, clean service boundaries, role-based authorization, operational visibility, and production-minded design**.
-
----
+This project was built to reflect real backend engineering rather than tutorial CRUD. Its main value is workflow correctness around role-based access, SalesRep data scoping, GPS visit validation, payment review, customer balances, auditability, and reviewer-friendly DevOps.
 
 ## What This Project Solves
 
-Mando API models the lifecycle of a real field sales platform:
+Mando models the lifecycle of a field sales platform:
 
-- Sales reps authenticate and operate within role-based permissions
-- Customers are managed with business-aware workflows
-- Visits are tracked as operational events, not just records
-- Orders are created through valid process boundaries
-- Payments go through controlled submission and review flows
-- Managers gain visibility through dashboards, reports, alerts, and audit trails
+- Sales reps authenticate and work within role-based permissions.
+- Customers are assigned, managed, and reported with operational context.
+- Visits are tracked as workflow events, including GPS validation and media support.
+- Orders are created inside valid business boundaries.
+- Payments go through controlled submission, approval, rejection, reverse, and void flows.
+- Managers get visibility through dashboards, reports, alerts, notifications, and audit trails.
 
-This is the kind of backend system where **business rules, consistency, and traceability** matter as much as data persistence.
+The code is intentionally organized so business rules, consistency, and traceability are visible during review.
 
----
+## Tech Stack
 
-## Core Capabilities
+- ASP.NET Core Web API on .NET 9
+- ASP.NET Core Identity with GUID users and roles
+- JWT bearer authentication
+- EF Core with SQL Server for local development and production-style runs
+- SQLite-backed integration tests through `WebApplicationFactory`
+- Swagger in Development
+- GitHub Actions CI
+- Dockerfile and Docker Compose for local review
+- Postman collection for API walkthroughs
 
-### Authentication & Authorization
-- JWT-based authentication
-- ASP.NET Core Identity integration
-- Role-based authorization
-- Current-user resolution
-- Safer user-state validation for protected flows
-
-### Customer Management
-- Customer creation and updates
-- Sales-rep assignment tracking
-- Customer status and operational context
-- Customer financial/reporting support
-
-### Visit Workflow
-- Visit lifecycle handling
-- Operational tracking of field activity
-- Media/image support for visit-related flows
-- Visit history and traceability
-
-### Order Management
-- Order creation within valid business workflows
-- Order lifecycle control
-- Reporting-ready operational data
-
-### Payment Workflow
-- Payment submission
-- Approval / rejection flow
-- Duplicate reference protection
-- Concurrency-aware handling for sensitive financial operations
-
-### Notifications & Operations
-- User notifications
-- Unread summaries
-- Operational visibility
-- Dashboard-oriented monitoring support
-
-### Reporting & Auditability
-- Sales and collections reporting
-- Operational dashboards
-- Performance-oriented summaries
-- Audit logs for sensitive or important actions
-
----
-
-## Engineering Focus
-
-This repository was intentionally built around the qualities that matter in serious backend systems:
-
-- **Thin controllers**
-- **Service-driven business logic**
-- **Clear separation of concerns**
-- **Consistent API contracts**
-- **Workflow-oriented design**
-- **EF Core discipline**
-- **Production-aware startup behavior**
-- **Integration-testable architecture**
-- **Operational realism**
-- **Reviewer-friendly code organization**
-
----
-
-## Architecture Overview
-
-The solution is organized to keep HTTP concerns, business rules, and persistence responsibilities clearly separated:
+## Architecture
 
 ```text
 Mando.sln
-├── Mando.Api
-│   ├── Controllers
-│   ├── Services
-│   ├── Interfaces
-│   ├── DTOs
-│   ├── Entities
-│   ├── Data
-│   ├── Configurations
-│   ├── Middleware
-│   ├── Helpers
-│   ├── Extensions
-│   └── Common
-└── Mando.Api.IntegrationTests
-    ├── Auth
-    ├── Contracts
-    └── Infrastructure#
+|-- Mando.Api
+|   |-- Controllers        HTTP endpoints and response mapping
+|   |-- Services           Business workflows and query models
+|   |-- Interfaces         Service contracts
+|   |-- DTOs               Request and response contracts
+|   |-- Entities           EF Core domain entities
+|   |-- Data               AppDbContext, migrations, seeders
+|   |-- Configurations     EF Core and options configuration
+|   |-- Middleware         Exception, request logging, correlation ID
+|   |-- Helpers            Cross-cutting helper utilities
+|   |-- Extensions         Startup and pipeline composition
+|   `-- Common             Shared base types and role constants
+`-- Mando.Api.IntegrationTests
+    |-- Auth
+    |-- Contracts
+    `-- Infrastructure
+```
+
+Request flow is intentionally simple:
+
+```text
+Controller -> Workflow/Query Service -> AppDbContext / Identity / helpers -> SQL Server
+```
+
+Controllers stay thin. Business rules live in services, with EF Core constraints and optimistic concurrency used where correctness matters.
+
+## Core Capabilities
+
+- Auth: login, JWT issuing, current-user profile
+- Users: admin user creation, status changes, role changes, sales-rep lookup
+- Customers: assignment, status lifecycle, credit settings, balance, statement, ledger
+- Visits: GPS validation, active visit lifecycle, visit images, timeline, attempt logs
+- Orders: order submission, cancellation rules, credit-limit enforcement
+- Payments: submission, duplicate reference checks, approval, rejection, reverse/void flows
+- Notifications: user-owned notification list, unread summary, mark-read workflows
+- Reports and dashboards: sales, collections, debt, visit compliance, operations KPIs
+- Audit logs: important workflow actions persisted for traceability
+
+## Engineering Focus
+
+This repository emphasizes:
+
+- Thin controllers
+- Service-driven business logic
+- Clear separation of concerns
+- Consistent API response contracts
+- Workflow-oriented design
+- EF Core discipline
+- Production-aware startup behavior
+- Integration-testable architecture
+- Operational realism
+- Reviewer-friendly code organization
+
+## Security Highlights
+
+- JWT keys are required, minimum 32 characters, and placeholder values are rejected.
+- Tokens are rejected if the user is inactive, locked out, deleted, has a changed security stamp, or has changed roles.
+- A fallback authorization policy requires authentication unless an endpoint explicitly allows anonymous access.
+- Fixed-window rate limiting protects login and high-impact workflow mutations.
+- SalesRep reads and writes are scoped in services so reps cannot access another rep's customers, visits, orders, payments, or notifications.
+- Payment self-review is blocked.
+- Visit media is stored in private local storage and served only through authorized API endpoints.
+- Request logging avoids request bodies and sensitive credential payloads.
+
+See [docs/security.md](docs/security.md) for the authorization matrix.
+
+## Database Design
+
+The EF model includes:
+
+- Unique customer and product codes
+- Unique order/payment numbers
+- Filtered uniqueness for one active visit per SalesRep
+- Filtered uniqueness for pending payment references per customer
+- Decimal precision for financial and GPS values
+- Restrictive delete behavior for operational records
+- RowVersion concurrency tokens on mutable workflow entities
+- Action-history tables for customer, product, user, visit, order, and payment transitions
+
+## Testing
+
+Integration tests cover authentication, JWT rejection, role authorization, rate limiting, SalesRep data isolation, duplicate payment reference rejection, invalid order products, and GPS validation.
+
+Run:
+
+```powershell
+dotnet restore Mando.sln
+dotnet build Mando.sln
+dotnet test Mando.sln
+dotnet format Mando.sln --verify-no-changes
+```
+
+Current test project: `Mando.Api.IntegrationTests`.
+
+## Run Locally
+
+Configure secrets first. The committed appsettings files intentionally do not contain real JWT keys or seed passwords.
+
+Example with user-secrets:
+
+```powershell
+dotnet user-secrets set "Jwt:Key" "replace-with-at-least-32-random-characters" --project Mando.Api
+dotnet user-secrets set "SeedAdmin:Password" "replace-with-a-local-password" --project Mando.Api
+dotnet user-secrets set "SeedManager:Password" "replace-with-a-local-password" --project Mando.Api
+dotnet user-secrets set "SeedSalesReps:0:Password" "replace-with-a-local-password" --project Mando.Api
+```
+
+Then:
+
+```powershell
+dotnet ef database update --project Mando.Api
+dotnet run --project Mando.Api
+```
+
+Swagger is available in Development after the API starts.
+
+## Rate Limiting
+
+Rate limits are configured through `RateLimiting:*` settings and can be overridden with environment variables.
+
+| Policy | Endpoints | Default | Development/Docker default |
+| --- | --- | --- | --- |
+| `Login` | `POST /api/auth/login` | 10 requests / 60 seconds | 60 requests / 60 seconds |
+| `SensitiveMutation` | payment approve/reject/reverse/void, visit start/end | 30 requests / 60 seconds | 120 requests / 60 seconds |
+
+429 responses use the standard error envelope with code `rate_limit_exceeded` and include `Retry-After` when the limiter can calculate it.
+
+## Docker
+
+Docker support is included for local review:
+
+```powershell
+copy .env.example .env
+docker compose up --build
+```
+
+Replace every `REPLACE_WITH...` value in `.env` before running. The local `.env` file is ignored by Git and must not be committed.
+
+Docker Compose starts SQL Server and the API, applies migrations, and seeds local review accounts when configured. It is intended for local portfolio review, not production deployment.
+
+## Documentation
+
+Additional reviewer documentation lives in:
+
+- [docs/security.md](docs/security.md)
+- [docs/deployment.md](docs/deployment.md)
+- [docs/screenshots/README.md](docs/screenshots/README.md)
+
+## Postman
+
+A starter collection is provided at [postman/Mando.Api.postman_collection.json](postman/Mando.Api.postman_collection.json). It includes login, current user, core list endpoints, and main workflow requests.
+
+## DevOps
+
+- GitHub Actions CI restores, builds, tests, and verifies formatting.
+- Dockerfile and Docker Compose support local reviewer runs.
+- `.env.example` documents local environment variables without committing secrets.
+- Build, test, format, and Docker verification commands are documented for repeatable review.
+
+## Portfolio Presentation
+
+Mando is meant to demonstrate backend judgment through a realistic domain. Field reps can only operate on assigned customers, visits gate order/payment creation, payments require manager/admin review, customer balances are derived from orders and approved payments, and important transitions are audited.
+
+The code avoids a heavy architecture rewrite, but still separates HTTP concerns from workflow and query services so business rules are testable and reviewable.
+
+## Limitations
+
+- No refresh-token flow yet.
+- No production-grade external file storage for visit images.
+- Audit logs are application append-only, not cryptographically tamper-evident.
+- Docker Compose is intended for local portfolio review, not production deployment.
+- SQL Server is the production database target; SQLite is used only for integration-test speed and isolation.
+
+## Future Improvements
+
+- Add refresh tokens and token revocation management.
+- Add SQL Server-backed concurrency stress tests for payment/order workflows.
+- Add OpenAPI examples for common workflow requests.
+- Add real screenshots captured from a local run.
