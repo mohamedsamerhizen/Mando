@@ -1,10 +1,12 @@
 # Mando API
 
-Mando API is a production-style ASP.NET Core Web API for managing field sales operations end to end: authentication, users, customers, visits, orders, payments, notifications, reports, operations dashboards, and audit logs.
+## Project Summary
 
-This project was built to reflect real backend engineering rather than tutorial CRUD. Its main value is workflow correctness around role-based access, SalesRep data scoping, GPS visit validation, payment review, customer balances, auditability, and reviewer-friendly DevOps.
+Mando API is a production-style ASP.NET Core Web API for managing field sales operations end to end. It covers authentication, users, customers, visits, orders, payments, notifications, reports, operations dashboards, and audit logs.
 
-## What This Project Solves
+The project is built to demonstrate backend engineering beyond tutorial CRUD. Its main value is workflow correctness around role-based access, SalesRep data scoping, GPS visit validation, payment review, customer balances, auditability, and reviewer-friendly DevOps.
+
+## What The Project Solves
 
 Mando models the lifecycle of a field sales platform:
 
@@ -17,19 +19,31 @@ Mando models the lifecycle of a field sales platform:
 
 The code is intentionally organized so business rules, consistency, and traceability are visible during review.
 
+## Core Capabilities
+
+- Auth: login, JWT issuing, and current-user profile.
+- Users: admin user creation, status changes, role changes, and sales-rep lookup.
+- Customers: assignment, status lifecycle, credit settings, balance, statement, and ledger.
+- Visits: GPS validation, active visit lifecycle, visit images, timeline, and attempt logs.
+- Orders: order submission, cancellation rules, and credit-limit enforcement.
+- Payments: submission, duplicate reference checks, approval, rejection, reverse, and void flows.
+- Notifications: user-owned notification list, unread summary, and mark-read workflows.
+- Reports and dashboards: sales, collections, debt, visit compliance, and operations KPIs.
+- Audit logs: important workflow actions persisted for traceability.
+
 ## Tech Stack
 
-- ASP.NET Core Web API on .NET 9
-- ASP.NET Core Identity with GUID users and roles
-- JWT bearer authentication
-- EF Core with SQL Server for local development and production-style runs
-- SQLite-backed integration tests through `WebApplicationFactory`
-- Swagger in Development
-- GitHub Actions CI
-- Dockerfile and Docker Compose for local review
-- Postman collection for API walkthroughs
+- ASP.NET Core Web API on .NET 9.
+- ASP.NET Core Identity with GUID users and roles.
+- JWT bearer authentication.
+- EF Core with SQL Server for local development and production-style runs.
+- SQLite-backed integration tests through `WebApplicationFactory`.
+- Swagger in Development.
+- GitHub Actions CI.
+- Dockerfile and Docker Compose for local review.
+- Postman collection for API walkthroughs.
 
-## Architecture
+## Architecture Overview
 
 ```text
 Mando.sln
@@ -59,36 +73,22 @@ Controller -> Workflow/Query Service -> AppDbContext / Identity / helpers -> SQL
 
 Controllers stay thin. Business rules live in services, with EF Core constraints and optimistic concurrency used where correctness matters.
 
-## Core Capabilities
+The EF model includes:
 
-- Auth: login, JWT issuing, current-user profile
-- Users: admin user creation, status changes, role changes, sales-rep lookup
-- Customers: assignment, status lifecycle, credit settings, balance, statement, ledger
-- Visits: GPS validation, active visit lifecycle, visit images, timeline, attempt logs
-- Orders: order submission, cancellation rules, credit-limit enforcement
-- Payments: submission, duplicate reference checks, approval, rejection, reverse/void flows
-- Notifications: user-owned notification list, unread summary, mark-read workflows
-- Reports and dashboards: sales, collections, debt, visit compliance, operations KPIs
-- Audit logs: important workflow actions persisted for traceability
+- Unique customer and product codes.
+- Unique order and payment numbers.
+- Filtered uniqueness for one active visit per SalesRep.
+- Filtered uniqueness for pending payment references per customer.
+- Decimal precision for financial and GPS values.
+- Restrictive delete behavior for operational records.
+- RowVersion concurrency tokens on mutable workflow entities.
+- Action-history tables for customer, product, user, visit, order, and payment transitions.
 
-## Engineering Focus
-
-This repository emphasizes:
-
-- Thin controllers
-- Service-driven business logic
-- Clear separation of concerns
-- Consistent API response contracts
-- Workflow-oriented design
-- EF Core discipline
-- Production-aware startup behavior
-- Integration-testable architecture
-- Operational realism
-- Reviewer-friendly code organization
+This repository emphasizes thin controllers, service-driven business logic, clear separation of concerns, consistent API response contracts, workflow-oriented design, EF Core discipline, production-aware startup behavior, integration-testable architecture, operational realism, and reviewer-friendly organization.
 
 ## Security Highlights
 
-- JWT keys are required, minimum 32 characters, and placeholder values are rejected.
+- JWT keys are required, must be at least 32 characters, and placeholder values are rejected.
 - Tokens are rejected if the user is inactive, locked out, deleted, has a changed security stamp, or has changed roles.
 - A fallback authorization policy requires authentication unless an endpoint explicitly allows anonymous access.
 - Fixed-window rate limiting protects login and high-impact workflow mutations.
@@ -97,20 +97,18 @@ This repository emphasizes:
 - Visit media is stored in private local storage and served only through authorized API endpoints.
 - Request logging avoids request bodies and sensitive credential payloads.
 
-See [docs/security.md](docs/security.md) for the authorization matrix.
+See [docs/security.md](docs/security.md) for the authorization matrix and remaining risks.
 
-## Database Design
+## Rate Limiting
 
-The EF model includes:
+Rate limits are configured through `RateLimiting:*` settings and can be overridden with environment variables.
 
-- Unique customer and product codes
-- Unique order/payment numbers
-- Filtered uniqueness for one active visit per SalesRep
-- Filtered uniqueness for pending payment references per customer
-- Decimal precision for financial and GPS values
-- Restrictive delete behavior for operational records
-- RowVersion concurrency tokens on mutable workflow entities
-- Action-history tables for customer, product, user, visit, order, and payment transitions
+| Policy | Endpoints | Default | Development/Docker default |
+| --- | --- | --- | --- |
+| `Login` | `POST /api/auth/login` | 10 requests / 60 seconds | 60 requests / 60 seconds |
+| `SensitiveMutation` | Payment approve/reject/reverse/void, visit start/end | 30 requests / 60 seconds | 120 requests / 60 seconds |
+
+429 responses use the standard error envelope with code `rate_limit_exceeded` and include `Retry-After` when the limiter can calculate it.
 
 ## Testing
 
@@ -127,7 +125,9 @@ dotnet format Mando.sln --verify-no-changes
 
 Current test project: `Mando.Api.IntegrationTests`.
 
-## Run Locally
+GitHub Actions CI restores, builds, tests, and verifies formatting on pull requests and pushes to `main`.
+
+## Local Development
 
 Configure secrets first. The committed appsettings files intentionally do not contain real JWT keys or seed passwords.
 
@@ -149,18 +149,7 @@ dotnet run --project Mando.Api
 
 Swagger is available in Development after the API starts.
 
-## Rate Limiting
-
-Rate limits are configured through `RateLimiting:*` settings and can be overridden with environment variables.
-
-| Policy | Endpoints | Default | Development/Docker default |
-| --- | --- | --- | --- |
-| `Login` | `POST /api/auth/login` | 10 requests / 60 seconds | 60 requests / 60 seconds |
-| `SensitiveMutation` | payment approve/reject/reverse/void, visit start/end | 30 requests / 60 seconds | 120 requests / 60 seconds |
-
-429 responses use the standard error envelope with code `rate_limit_exceeded` and include `Retry-After` when the limiter can calculate it.
-
-## Docker
+## Docker Setup
 
 Docker support is included for local review:
 
@@ -173,6 +162,26 @@ Replace every `REPLACE_WITH...` value in `.env` before running. The local `.env`
 
 Docker Compose starts SQL Server and the API, applies migrations, and seeds local review accounts when configured. It is intended for local portfolio review, not production deployment.
 
+Required `.env` variables for Docker Compose:
+
+| Variable | Purpose |
+| --- | --- |
+| `JWT_KEY` | Local JWT signing key, at least 32 characters |
+| `MSSQL_SA_PASSWORD` | SQL Server SA password for the local container |
+| `SEED_ADMIN_PASSWORD` | Local admin seed password |
+| `SEED_MANAGER_PASSWORD` | Local manager seed password |
+| `SEED_SALES_REP_0_PASSWORD` | Local SalesRep seed password |
+| `SEED_SALES_REP_1_PASSWORD` | Local SalesRep seed password |
+| `SEED_SALES_REP_2_PASSWORD` | Local SalesRep seed password |
+
+Optional rate-limit and seed account display values are documented in [.env.example](.env.example).
+
+## Postman Collection
+
+A starter collection is provided at [postman/Mando.Api.postman_collection.json](postman/Mando.Api.postman_collection.json). It includes login, current user, core list endpoints, and main workflow requests.
+
+Run the login request first and store the returned JWT in the collection variable before calling authenticated endpoints.
+
 ## Documentation
 
 Additional reviewer documentation lives in:
@@ -180,23 +189,6 @@ Additional reviewer documentation lives in:
 - [docs/security.md](docs/security.md)
 - [docs/deployment.md](docs/deployment.md)
 - [docs/screenshots/README.md](docs/screenshots/README.md)
-
-## Postman
-
-A starter collection is provided at [postman/Mando.Api.postman_collection.json](postman/Mando.Api.postman_collection.json). It includes login, current user, core list endpoints, and main workflow requests.
-
-## DevOps
-
-- GitHub Actions CI restores, builds, tests, and verifies formatting.
-- Dockerfile and Docker Compose support local reviewer runs.
-- `.env.example` documents local environment variables without committing secrets.
-- Build, test, format, and Docker verification commands are documented for repeatable review.
-
-## Portfolio Presentation
-
-Mando is meant to demonstrate backend judgment through a realistic domain. Field reps can only operate on assigned customers, visits gate order/payment creation, payments require manager/admin review, customer balances are derived from orders and approved payments, and important transitions are audited.
-
-The code avoids a heavy architecture rewrite, but still separates HTTP concerns from workflow and query services so business rules are testable and reviewable.
 
 ## Limitations
 
@@ -212,3 +204,9 @@ The code avoids a heavy architecture rewrite, but still separates HTTP concerns 
 - Add SQL Server-backed concurrency stress tests for payment/order workflows.
 - Add OpenAPI examples for common workflow requests.
 - Add real screenshots captured from a local run.
+
+## Interview Explanation
+
+Mando is meant to demonstrate backend judgment through a realistic field-sales domain. Field reps can only operate on assigned customers, visits gate order and payment creation, payments require manager or admin review, customer balances are derived from orders and approved payments, and important transitions are audited.
+
+The code avoids a heavy architecture rewrite while still separating HTTP concerns from workflow and query services. That keeps business rules testable, reviewable, and close to the workflows they protect.

@@ -1,6 +1,10 @@
 # Security and Authorization Notes
 
+## Authentication Model
+
 Mando uses JWT bearer authentication with ASP.NET Core Identity. Tokens are validated against the current user record, active status, lockout state, security stamp, and current role set. A fallback authorization policy requires authentication for endpoints that do not explicitly opt out with `AllowAnonymous`.
+
+## Rate Limiting
 
 Login and selected high-impact mutation endpoints are protected with fixed-window rate limits. Rejected requests return HTTP 429 with the API error envelope code `rate_limit_exceeded` and a `Retry-After` header when available.
 
