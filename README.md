@@ -188,6 +188,28 @@ Optional rate-limit and seed account display values are documented in [.env.exam
 
 ![Health Ready](docs/screenshots/health-ready.png)
 
+### Docker Runtime
+
+![Docker Runtime](docs/screenshots/docker.png)
+
+### Authentication Flow
+
+![Login Workflow](docs/screenshots/postman-login.png)
+
+![Authenticated User](docs/screenshots/postman-me.png)
+
+### Field Sales Workflows
+
+![Customers](docs/screenshots/postman-customers.png)
+
+![Visits](docs/screenshots/postman-visits.png)
+
+![Payments](docs/screenshots/postman-payments.png)
+
+### Operations Dashboard
+
+![Dashboard](docs/screenshots/postman-dashboard.png)
+
 ## Postman Collection
 
 A starter collection is provided at [postman/Mando.Api.postman_collection.json](postman/Mando.Api.postman_collection.json). It includes login, current user, core list endpoints, and main workflow requests.
@@ -215,7 +237,7 @@ Additional reviewer documentation lives in:
 - Add refresh tokens and token revocation management.
 - Add SQL Server-backed concurrency stress tests for payment/order workflows.
 - Add OpenAPI examples for common workflow requests.
-- Add real screenshots captured from a local run.
+- Add more end-to-end business workflow screenshots or a short demo video.
 
 ## Interview Explanation
 

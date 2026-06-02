@@ -2,6 +2,8 @@
 
 These screenshots are captured from a real local Docker Compose run of Mando API. Do not add mock, generated, or placeholder images to this folder.
 
+The `postman-*.png` files are sanitized API-client captures generated from live Mando API requests. They are intended to prove the same request/response workflows a reviewer would run in Postman. If you capture the real Postman desktop UI later, replace these files with those screenshots after redacting sensitive values.
+
 ## Included Screenshots
 
 | File | Demonstrates |
@@ -9,12 +11,31 @@ These screenshots are captured from a real local Docker Compose run of Mando API
 | `swagger.png` | Swagger UI loading the Mando API endpoint catalog in Development. |
 | `health-live.png` | The `/health/live` endpoint returning a healthy application liveness response. |
 | `health-ready.png` | The `/health/ready` endpoint returning a healthy database readiness response. |
+| `docker.png` | Docker Compose runtime with the API and SQL Server services running. |
+| `postman-login.png` | Successful `POST /api/auth/login` response shape with token and password redacted. |
+| `postman-me.png` | Successful authenticated `GET /api/auth/me` response with Authorization redacted. |
+| `postman-customers.png` | Paged `GET /api/customers` response from seeded demo data with contact/location fields redacted. |
+| `postman-visits.png` | Paged `GET /api/visits` workflow response with GPS coordinates redacted. |
+| `postman-payments.png` | Paged `GET /api/payments` workflow response showing payment review state. |
+| `postman-dashboard.png` | `GET /api/dashboard/summary` operational metrics response. |
 
-## Safety Notes
+## Safety Rules
 
 - Do not include JWT tokens, refresh tokens, passwords, connection strings, local `.env` values, or private machine paths.
-- Redact or crop any screenshot that shows Authorization headers, request passwords, bearer tokens, or local-only secrets.
-- Keep screenshots focused on the API behavior, status codes, endpoint names, response shape, and safe demo data.
+- Redact Authorization headers, request passwords, bearer tokens, phone numbers, street addresses, and GPS coordinates.
+- Keep screenshots focused on API behavior, status codes, endpoint names, response shape, and safe demo data.
+- Review every image visually before committing.
+
+## Manual Postman Replacement Checklist
+
+Take these manually only after the local stack is running and seeded:
+
+- `postman-login.png`: `POST /api/auth/login`, status `200`, password hidden, token redacted.
+- `postman-me.png`: `GET /api/auth/me`, status `200`, Authorization header/JWT redacted.
+- `postman-customers.png`: `GET /api/customers?pageNumber=1&pageSize=3`, contact/location values redacted.
+- `postman-visits.png`: `GET /api/visits?pageNumber=1&pageSize=3`, GPS values redacted.
+- `postman-payments.png`: `GET /api/payments?pageNumber=1&pageSize=3`, no token/header visible.
+- `postman-dashboard.png`: `GET /api/dashboard/summary`, no token/header visible.
 
 ## Replacing Screenshots
 
