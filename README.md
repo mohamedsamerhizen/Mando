@@ -176,6 +176,18 @@ Required `.env` variables for Docker Compose:
 
 Optional rate-limit and seed account display values are documented in [.env.example](.env.example).
 
+## Screenshots
+
+### Swagger
+
+![Swagger UI](docs/screenshots/swagger.png)
+
+### Health Checks
+
+![Health Live](docs/screenshots/health-live.png)
+
+![Health Ready](docs/screenshots/health-ready.png)
+
 ## Postman Collection
 
 A starter collection is provided at [postman/Mando.Api.postman_collection.json](postman/Mando.Api.postman_collection.json). It includes login, current user, core list endpoints, and main workflow requests.
