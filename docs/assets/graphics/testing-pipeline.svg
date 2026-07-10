@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="560" viewBox="0 0 1280 560" role="img" aria-labelledby="title desc">
+  <title id="title">Mando testing and CI pipeline</title>
+  <desc id="desc">Testing diagram showing local and CI verification, WebApplicationFactory integration tests, SQLite database, seed data, and format checks.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/>
+    </marker>
+    <style>
+      .bg{fill:#f8fafc}
+      .card{fill:#fff;stroke:#cbd5e1;stroke-width:2}
+      .blue{fill:#eff6ff;stroke:#2563eb;stroke-width:2}
+      .green{fill:#ecfdf5;stroke:#059669;stroke-width:2}
+      .amber{fill:#fff7ed;stroke:#d97706;stroke-width:2}
+      .title{font:700 30px Arial,Helvetica,sans-serif;fill:#102a43}
+      .subtitle{font:400 16px Arial,Helvetica,sans-serif;fill:#486581}
+      .label{font:700 17px Arial,Helvetica,sans-serif;fill:#102a43}
+      .small{font:400 13px Arial,Helvetica,sans-serif;fill:#486581}
+      .arrow{stroke:#0f766e;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="560"/>
+  <text class="title" x="58" y="62">Testing &amp; CI Pipeline</text>
+  <text class="subtitle" x="58" y="91">Integration behavior is verified through xUnit, WebApplicationFactory, SQLite, and GitHub Actions.</text>
+
+  <rect class="blue" x="70" y="155" width="190" height="120" rx="8"/>
+  <text class="label" x="100" y="191">Source</text>
+  <text class="small" x="100" y="221">Mando.sln</text>
+  <text class="small" x="100" y="245">API + integration tests</text>
+
+  <rect class="card" x="320" y="155" width="190" height="120" rx="8"/>
+  <text class="label" x="350" y="191">Restore / Build</text>
+  <text class="small" x="350" y="221">.NET 9 SDK</text>
+  <text class="small" x="350" y="245">Release in CI</text>
+
+  <rect class="green" x="570" y="155" width="210" height="120" rx="8"/>
+  <text class="label" x="600" y="191">Test Host</text>
+  <text class="small" x="600" y="221">WebApplicationFactory</text>
+  <text class="small" x="600" y="245">Testing environment</text>
+
+  <rect class="amber" x="840" y="155" width="210" height="120" rx="8"/>
+  <text class="label" x="870" y="191">Database</text>
+  <text class="small" x="870" y="221">SQLite test DB</text>
+  <text class="small" x="870" y="245">Seeded Identity users</text>
+
+  <rect class="card" x="1110" y="155" width="120" height="120" rx="8"/>
+  <text class="label" x="1138" y="191">Tests</text>
+  <text class="small" x="1138" y="221">49 recorded</text>
+  <text class="small" x="1138" y="245">integration</text>
+
+  <path class="arrow" d="M260 215 H305"/>
+  <path class="arrow" d="M510 215 H555"/>
+  <path class="arrow" d="M780 215 H825"/>
+  <path class="arrow" d="M1050 215 H1095"/>
+
+  <rect class="blue" x="110" y="360" width="230" height="105" rx="8"/>
+  <text class="label" x="140" y="396">Auth Coverage</text>
+  <text class="small" x="140" y="426">Login, refresh, logout</text>
+  <text class="small" x="140" y="448">Token rejection cases</text>
+
+  <rect class="green" x="400" y="360" width="230" height="105" rx="8"/>
+  <text class="label" x="430" y="396">Domain Coverage</text>
+  <text class="small" x="430" y="426">Customers, visits, orders</text>
+  <text class="small" x="430" y="448">SalesRep isolation</text>
+
+  <rect class="amber" x="690" y="360" width="230" height="105" rx="8"/>
+  <text class="label" x="720" y="396">Financial Coverage</text>
+  <text class="small" x="720" y="426">Payment review/reversal</text>
+  <text class="small" x="720" y="448">Ledger restoration entries</text>
+
+  <rect class="card" x="980" y="360" width="230" height="105" rx="8"/>
+  <text class="label" x="1010" y="396">CI Gate</text>
+  <text class="small" x="1010" y="426">dotnet test</text>
+  <text class="small" x="1010" y="448">dotnet format verify</text>
+</svg>

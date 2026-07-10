@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="660" viewBox="0 0 1280 660" role="img" aria-labelledby="title desc">
+  <title id="title">Mando security overview</title>
+  <desc id="desc">Security overview showing configuration, authentication, authorization, data scoping, rate limiting, private media, and logging boundaries.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8fafc}
+      .core{fill:#102a43;stroke:#102a43;stroke-width:2}
+      .card{fill:#fff;stroke:#cbd5e1;stroke-width:2}
+      .blue{fill:#eff6ff;stroke:#2563eb;stroke-width:2}
+      .green{fill:#ecfdf5;stroke:#059669;stroke-width:2}
+      .amber{fill:#fff7ed;stroke:#d97706;stroke-width:2}
+      .teal{fill:#e6fffb;stroke:#0f766e;stroke-width:2}
+      .title{font:700 30px Arial,Helvetica,sans-serif;fill:#102a43}
+      .subtitle{font:400 16px Arial,Helvetica,sans-serif;fill:#486581}
+      .label{font:700 17px Arial,Helvetica,sans-serif;fill:#102a43}
+      .label-light{font:700 19px Arial,Helvetica,sans-serif;fill:#ffffff}
+      .small{font:400 13px Arial,Helvetica,sans-serif;fill:#486581}
+      .small-light{font:400 14px Arial,Helvetica,sans-serif;fill:#d9e2ec}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="660"/>
+  <text class="title" x="58" y="62">Security Overview</text>
+  <text class="subtitle" x="58" y="91">Controls implemented in the application layer and documented limits that remain true for this repository.</text>
+
+  <rect class="core" x="460" y="255" width="360" height="140" rx="10"/>
+  <text class="label-light" x="540" y="307">Protected API by Default</text>
+  <text class="small-light" x="520" y="338">Fallback authorization policy</text>
+  <text class="small-light" x="525" y="362">Route roles plus service scope checks</text>
+
+  <rect class="blue" x="80" y="145" width="300" height="130" rx="8"/>
+  <text class="label" x="110" y="181">Secrets &amp; Startup Guardrails</text>
+  <text class="small" x="110" y="211">JWT key required, 32+ characters</text>
+  <text class="small" x="110" y="235">Placeholder keys rejected</text>
+  <text class="small" x="110" y="259">Prod startup blocks auto seed/migrate</text>
+
+  <rect class="green" x="490" y="120" width="300" height="130" rx="8"/>
+  <text class="label" x="520" y="156">Token Validation</text>
+  <text class="small" x="520" y="186">Issuer, audience, signing key</text>
+  <text class="small" x="520" y="210">Zero clock skew</text>
+  <text class="small" x="520" y="234">Active user, lockout, stamp, roles</text>
+
+  <rect class="amber" x="900" y="145" width="300" height="130" rx="8"/>
+  <text class="label" x="930" y="181">Refresh Tokens</text>
+  <text class="small" x="930" y="211">Random token, SHA-256 hash stored</text>
+  <text class="small" x="930" y="235">Rotated on refresh</text>
+  <text class="small" x="930" y="259">Reuse detection timestamp</text>
+
+  <rect class="teal" x="80" y="385" width="300" height="130" rx="8"/>
+  <text class="label" x="110" y="421">SalesRep Data Isolation</text>
+  <text class="small" x="110" y="451">Assigned customer access</text>
+  <text class="small" x="110" y="475">Own visits, orders, payments</text>
+  <text class="small" x="110" y="499">Scoped statements and ledgers</text>
+
+  <rect class="card" x="490" y="430" width="300" height="130" rx="8"/>
+  <text class="label" x="520" y="466">Rate Limits</text>
+  <text class="small" x="520" y="496">Login policy</text>
+  <text class="small" x="520" y="520">Sensitive mutation policy</text>
+  <text class="small" x="520" y="544">Standard 429 error envelope</text>
+
+  <rect class="blue" x="900" y="385" width="300" height="130" rx="8"/>
+  <text class="label" x="930" y="421">Media &amp; Logging</text>
+  <text class="small" x="930" y="451">Private visit image storage</text>
+  <text class="small" x="930" y="475">No request bodies in logs</text>
+  <text class="small" x="930" y="499">Trace and correlation IDs</text>
+
+  <path d="M380 215 C430 225 445 250 460 290" stroke="#94a3b8" stroke-width="2" fill="none"/>
+  <path d="M640 250 V255" stroke="#94a3b8" stroke-width="2" fill="none"/>
+  <path d="M900 215 C850 225 835 250 820 290" stroke="#94a3b8" stroke-width="2" fill="none"/>
+  <path d="M380 450 C430 435 445 410 460 360" stroke="#94a3b8" stroke-width="2" fill="none"/>
+  <path d="M640 430 V395" stroke="#94a3b8" stroke-width="2" fill="none"/>
+  <path d="M900 450 C850 435 835 410 820 360" stroke="#94a3b8" stroke-width="2" fill="none"/>
+</svg>

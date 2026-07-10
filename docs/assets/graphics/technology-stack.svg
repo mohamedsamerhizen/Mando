@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620" role="img" aria-labelledby="title desc">
+  <title id="title">Mando technology stack</title>
+  <desc id="desc">Technology stack diagram for the API runtime, persistence, security, documentation, testing, containers, and CI.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8fafc}
+      .card{fill:#ffffff;stroke:#cbd5e1;stroke-width:2}
+      .head{fill:#102a43}
+      .blue{fill:#eff6ff;stroke:#2563eb;stroke-width:2}
+      .green{fill:#ecfdf5;stroke:#059669;stroke-width:2}
+      .amber{fill:#fff7ed;stroke:#d97706;stroke-width:2}
+      .teal{fill:#e6fffb;stroke:#0f766e;stroke-width:2}
+      .title{font:700 30px Arial,Helvetica,sans-serif;fill:#102a43}
+      .subtitle{font:400 16px Arial,Helvetica,sans-serif;fill:#486581}
+      .label{font:700 18px Arial,Helvetica,sans-serif;fill:#102a43}
+      .small{font:400 14px Arial,Helvetica,sans-serif;fill:#486581}
+      .light{font:700 18px Arial,Helvetica,sans-serif;fill:#ffffff}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="620"/>
+  <text class="title" x="58" y="62">Technology Stack</text>
+  <text class="subtitle" x="58" y="91">Stack verified from project files, startup configuration, Docker assets, tests, and GitHub Actions.</text>
+
+  <rect class="head" x="80" y="140" width="1120" height="64" rx="8"/>
+  <text class="light" x="520" y="180">ASP.NET Core Web API on .NET 9</text>
+
+  <rect class="blue" x="80" y="250" width="260" height="135" rx="8"/>
+  <text class="label" x="110" y="286">API Runtime</text>
+  <text class="small" x="110" y="316">Controllers and DTOs</text>
+  <text class="small" x="110" y="340">Response envelope filter</text>
+  <text class="small" x="110" y="364">ProblemDetails and middleware</text>
+
+  <rect class="green" x="380" y="250" width="260" height="135" rx="8"/>
+  <text class="label" x="410" y="286">Persistence</text>
+  <text class="small" x="410" y="316">EF Core 9</text>
+  <text class="small" x="410" y="340">SQL Server provider</text>
+  <text class="small" x="410" y="364">SQLite integration tests</text>
+
+  <rect class="amber" x="680" y="250" width="260" height="135" rx="8"/>
+  <text class="label" x="710" y="286">Security</text>
+  <text class="small" x="710" y="316">ASP.NET Core Identity</text>
+  <text class="small" x="710" y="340">JWT bearer auth</text>
+  <text class="small" x="710" y="364">Fixed-window rate limits</text>
+
+  <rect class="teal" x="980" y="250" width="220" height="135" rx="8"/>
+  <text class="label" x="1010" y="286">API Docs</text>
+  <text class="small" x="1010" y="316">Swashbuckle</text>
+  <text class="small" x="1010" y="340">Bearer security scheme</text>
+  <text class="small" x="1010" y="364">Postman starter collection</text>
+
+  <rect class="card" x="80" y="430" width="260" height="120" rx="8"/>
+  <text class="label" x="110" y="466">Testing</text>
+  <text class="small" x="110" y="496">xUnit</text>
+  <text class="small" x="110" y="520">FluentAssertions</text>
+
+  <rect class="card" x="380" y="430" width="260" height="120" rx="8"/>
+  <text class="label" x="410" y="466">Test Hosting</text>
+  <text class="small" x="410" y="496">WebApplicationFactory</text>
+  <text class="small" x="410" y="520">Per-run SQLite database</text>
+
+  <rect class="card" x="680" y="430" width="260" height="120" rx="8"/>
+  <text class="label" x="710" y="466">Containers</text>
+  <text class="small" x="710" y="496">Dockerfile multi-stage build</text>
+  <text class="small" x="710" y="520">SQL Server 2022 compose service</text>
+
+  <rect class="card" x="980" y="430" width="220" height="120" rx="8"/>
+  <text class="label" x="1010" y="466">CI</text>
+  <text class="small" x="1010" y="496">GitHub Actions</text>
+  <text class="small" x="1010" y="520">Restore, build, test, format</text>
+</svg>

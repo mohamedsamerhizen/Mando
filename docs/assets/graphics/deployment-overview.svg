@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620" role="img" aria-labelledby="title desc">
+  <title id="title">Mando deployment and local operations overview</title>
+  <desc id="desc">Deployment overview showing local development, Docker Compose local review, and GitHub Actions CI boundaries.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334e68"/>
+    </marker>
+    <style>
+      .bg{fill:#f8fafc}
+      .card{fill:#fff;stroke:#cbd5e1;stroke-width:2}
+      .blue{fill:#eff6ff;stroke:#2563eb;stroke-width:2}
+      .green{fill:#ecfdf5;stroke:#059669;stroke-width:2}
+      .amber{fill:#fff7ed;stroke:#d97706;stroke-width:2}
+      .dark{fill:#102a43;stroke:#102a43;stroke-width:2}
+      .title{font:700 30px Arial,Helvetica,sans-serif;fill:#102a43}
+      .subtitle{font:400 16px Arial,Helvetica,sans-serif;fill:#486581}
+      .label{font:700 18px Arial,Helvetica,sans-serif;fill:#102a43}
+      .label-light{font:700 18px Arial,Helvetica,sans-serif;fill:#fff}
+      .small{font:400 14px Arial,Helvetica,sans-serif;fill:#486581}
+      .small-light{font:400 14px Arial,Helvetica,sans-serif;fill:#d9e2ec}
+      .arrow{stroke:#334e68;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="620"/>
+  <text class="title" x="58" y="62">Deployment &amp; Operations Overview</text>
+  <text class="subtitle" x="58" y="91">This repository provides local development, Docker Compose review, and CI validation. It does not claim a production hosting pipeline.</text>
+
+  <rect class="blue" x="80" y="150" width="320" height="155" rx="8"/>
+  <text class="label" x="110" y="188">Local Development</text>
+  <text class="small" x="110" y="220">dotnet user-secrets</text>
+  <text class="small" x="110" y="246">dotnet ef database update</text>
+  <text class="small" x="110" y="272">dotnet run --project Mando.Api</text>
+
+  <rect class="green" x="480" y="150" width="320" height="155" rx="8"/>
+  <text class="label" x="510" y="188">Docker Compose Review</text>
+  <text class="small" x="510" y="220">API container on port 8080</text>
+  <text class="small" x="510" y="246">SQL Server 2022 on host 14333</text>
+  <text class="small" x="510" y="272">.env placeholders required</text>
+
+  <rect class="amber" x="880" y="150" width="320" height="155" rx="8"/>
+  <text class="label" x="910" y="188">GitHub Actions</text>
+  <text class="small" x="910" y="220">push to main and pull request</text>
+  <text class="small" x="910" y="246">restore, build, test</text>
+  <text class="small" x="910" y="272">format verification</text>
+
+  <path class="arrow" d="M400 228 H465"/>
+  <path class="arrow" d="M800 228 H865"/>
+
+  <rect class="card" x="160" y="395" width="250" height="120" rx="8"/>
+  <text class="label" x="190" y="431">Swagger</text>
+  <text class="small" x="190" y="461">Development only</text>
+  <text class="small" x="190" y="485">Bearer auth scheme</text>
+
+  <rect class="dark" x="515" y="380" width="250" height="150" rx="8"/>
+  <text class="label-light" x="545" y="416">Startup Guards</text>
+  <text class="small-light" x="545" y="446">Auto migrations/seeding</text>
+  <text class="small-light" x="545" y="470">allowed only in Development</text>
+  <text class="small-light" x="545" y="494">and Testing</text>
+
+  <rect class="card" x="870" y="395" width="250" height="120" rx="8"/>
+  <text class="label" x="900" y="431">Health Checks</text>
+  <text class="small" x="900" y="461">/health/live</text>
+  <text class="small" x="900" y="485">/health/ready</text>
+</svg>

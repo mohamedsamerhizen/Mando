@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Mando business modules</title>
+  <desc id="desc">Business module diagram for auth, users, customers, visits, products, orders, payments, operations, reports, notifications, and audit logs.</desc>
+  <defs>
+    <style>
+      .bg{fill:#f8fafc}
+      .center{fill:#102a43;stroke:#102a43;stroke-width:2}
+      .box{fill:#ffffff;stroke:#cbd5e1;stroke-width:2}
+      .box-blue{fill:#eff6ff;stroke:#2563eb;stroke-width:2}
+      .box-green{fill:#ecfdf5;stroke:#059669;stroke-width:2}
+      .box-amber{fill:#fff7ed;stroke:#d97706;stroke-width:2}
+      .box-teal{fill:#e6fffb;stroke:#0f766e;stroke-width:2}
+      .line{stroke:#94a3b8;stroke-width:2}
+      .title{font:700 30px Arial,Helvetica,sans-serif;fill:#102a43}
+      .subtitle{font:400 16px Arial,Helvetica,sans-serif;fill:#486581}
+      .label{font:700 17px Arial,Helvetica,sans-serif;fill:#102a43}
+      .label-light{font:700 20px Arial,Helvetica,sans-serif;fill:#ffffff}
+      .small{font:400 13px Arial,Helvetica,sans-serif;fill:#486581}
+      .small-light{font:400 14px Arial,Helvetica,sans-serif;fill:#d9e2ec}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="720"/>
+  <text class="title" x="58" y="62">Business Modules</text>
+  <text class="subtitle" x="58" y="91">Field-sales operations modeled by the repository. No frontend, inventory warehouse, payment gateway, or ERP module is claimed.</text>
+
+  <line class="line" x1="640" y1="360" x2="220" y2="180"/>
+  <line class="line" x1="640" y1="360" x2="640" y2="170"/>
+  <line class="line" x1="640" y1="360" x2="1060" y2="180"/>
+  <line class="line" x1="640" y1="360" x2="220" y2="540"/>
+  <line class="line" x1="640" y1="360" x2="640" y2="550"/>
+  <line class="line" x1="640" y1="360" x2="1060" y2="540"/>
+  <line class="line" x1="640" y1="360" x2="350" y2="360"/>
+  <line class="line" x1="640" y1="360" x2="930" y2="360"/>
+
+  <rect class="center" x="500" y="285" width="280" height="150" rx="10"/>
+  <text class="label-light" x="546" y="336">Mando Field-Sales</text>
+  <text class="label-light" x="582" y="364">Backend</text>
+  <text class="small-light" x="548" y="394">Customer visits, orders,</text>
+  <text class="small-light" x="560" y="416">payments, and reports</text>
+
+  <rect class="box-blue" x="90" y="128" width="260" height="115" rx="8"/>
+  <text class="label" x="118" y="162">Auth &amp; Users</text>
+  <text class="small" x="118" y="190">Identity, roles, lockout</text>
+  <text class="small" x="118" y="212">JWT and refresh workflow</text>
+
+  <rect class="box-green" x="510" y="118" width="260" height="115" rx="8"/>
+  <text class="label" x="538" y="152">Customers</text>
+  <text class="small" x="538" y="180">SalesRep assignment</text>
+  <text class="small" x="538" y="202">Balance, statement, ledger</text>
+
+  <rect class="box-teal" x="930" y="128" width="260" height="115" rx="8"/>
+  <text class="label" x="958" y="162">GPS Visits &amp; Media</text>
+  <text class="small" x="958" y="190">Start, end, cancel</text>
+  <text class="small" x="958" y="212">Private image endpoints</text>
+
+  <rect class="box" x="90" y="302" width="260" height="115" rx="8"/>
+  <text class="label" x="118" y="336">Products</text>
+  <text class="small" x="118" y="364">Catalog lifecycle</text>
+  <text class="small" x="118" y="386">Database-backed pricing</text>
+
+  <rect class="box-amber" x="930" y="302" width="260" height="115" rx="8"/>
+  <text class="label" x="958" y="336">Orders &amp; Payments</text>
+  <text class="small" x="958" y="364">Active-visit submission</text>
+  <text class="small" x="958" y="386">Review, reject, reverse</text>
+
+  <rect class="box-blue" x="90" y="492" width="260" height="115" rx="8"/>
+  <text class="label" x="118" y="526">Reports &amp; Dashboard</text>
+  <text class="small" x="118" y="554">Sales, collections, debt</text>
+  <text class="small" x="118" y="576">Manager and SalesRep views</text>
+
+  <rect class="box-green" x="510" y="502" width="260" height="115" rx="8"/>
+  <text class="label" x="538" y="536">Operations</text>
+  <text class="small" x="538" y="564">KPI dashboards</text>
+  <text class="small" x="538" y="586">Alert review workflow</text>
+
+  <rect class="box-teal" x="930" y="492" width="260" height="115" rx="8"/>
+  <text class="label" x="958" y="526">Audit &amp; Notifications</text>
+  <text class="small" x="958" y="554">Action histories</text>
+  <text class="small" x="958" y="576">User notifications</text>
+</svg>

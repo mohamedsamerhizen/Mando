@@ -1,246 +1,510 @@
-# Mando API
+# Mando Backend
 
-## Project Summary
+<div align="center">
 
-Mando API is a production-style ASP.NET Core Web API for managing field sales operations end to end. It covers authentication, users, customers, visits, orders, payments, notifications, reports, operations dashboards, and audit logs.
+**Enterprise-style field-sales backend for customer visits, orders, payment review, balances, reports, and SalesRep-scoped access control.**
 
-The project is built to demonstrate backend engineering beyond tutorial CRUD. Its main value is workflow correctness around role-based access, SalesRep data scoping, GPS visit validation, payment review, customer balances, auditability, and reviewer-friendly DevOps.
+Mando is a backend-only ASP.NET Core Web API built as a realistic field-sales portfolio system. It focuses on the kind of backend concerns that matter in client and interview discussions: authentication, authorization, service-level data isolation, financial workflow integrity, EF Core schema design, Docker-based local review, CI, documentation, and integration tests.
 
-## What The Project Solves
+![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-Web%20API-2563EB?style=for-the-badge&logo=dotnet&logoColor=white)
+![EF Core](https://img.shields.io/badge/EF%20Core-9.0-0F766E?style=for-the-badge)
+![SQL Server](https://img.shields.io/badge/SQL%20Server-2022-CC2927?style=for-the-badge&logo=microsoftsqlserver&logoColor=white)
+![JWT](https://img.shields.io/badge/Auth-JWT%20%2B%20Refresh%20Tokens-F59E0B?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Tests](https://img.shields.io/badge/Integration%20Tests-49-16A34A?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-111827?style=for-the-badge)
 
-Mando models the lifecycle of a field sales platform:
+[Business Overview](#business-overview) | [Architecture](#architecture-overview) | [API](#api-documentation) | [Security](#security-features) | [Testing](#testing) | [Docker](#docker) | [Screenshots](#screenshots)
 
-- Sales reps authenticate and work within role-based permissions.
-- Customers are assigned, managed, and reported with operational context.
-- Visits are tracked as workflow events, including GPS validation and media support.
-- Orders are created inside valid business boundaries.
-- Payments go through controlled submission, approval, rejection, reverse, and void flows.
-- Managers get visibility through dashboards, reports, alerts, notifications, and audit trails.
+</div>
 
-The code is intentionally organized so business rules, consistency, and traceability are visible during review.
+> [!IMPORTANT]
+> This README describes only what exists in the repository. Mando is not presented as a full ERP, SaaS platform, frontend application, warehouse system, real payment gateway, or legal accounting product.
 
-## Core Capabilities
+## Contents
 
-- Auth: login, JWT issuing, and current-user profile.
-- Users: admin user creation, status changes, role changes, and sales-rep lookup.
-- Customers: assignment, status lifecycle, credit settings, balance, statement, and ledger.
-- Visits: GPS validation, active visit lifecycle, visit images, timeline, and attempt logs.
-- Orders: order submission, cancellation rules, and credit-limit enforcement.
-- Payments: submission, duplicate reference checks, approval, rejection, reverse, and void flows.
-- Notifications: user-owned notification list, unread summary, and mark-read workflows.
-- Reports and dashboards: sales, collections, debt, visit compliance, and operations KPIs.
-- Audit logs: important workflow actions persisted for traceability.
+- [Project Introduction](#project-introduction)
+- [Why This Project Exists](#why-this-project-exists)
+- [Business Overview](#business-overview)
+- [Repository Highlights](#repository-highlights)
+- [Key Features](#key-features)
+- [Architecture Overview](#architecture-overview)
+- [Project Structure](#project-structure)
+- [Technology Stack](#technology-stack)
+- [Security Features](#security-features)
+- [Authentication & Authorization](#authentication--authorization)
+- [Database & Financial Model](#database--financial-model)
+- [API Documentation](#api-documentation)
+- [Testing](#testing)
+- [Docker](#docker)
+- [CI/CD](#cicd)
+- [Logging & Observability](#logging--observability)
+- [Getting Started](#getting-started)
+- [Configuration](#configuration)
+- [Demo Data](#demo-data)
+- [Screenshots](#screenshots)
+- [Design Decisions](#design-decisions)
+- [Production-Ready Capabilities](#production-ready-capabilities)
+- [Limitations](#limitations)
+- [Future Roadmap](#future-roadmap)
+- [License](#license)
+- [Author](#author)
 
-## Tech Stack
+## Project Introduction
 
-- ASP.NET Core Web API on .NET 9.
-- ASP.NET Core Identity with GUID users and roles.
-- JWT bearer authentication.
-- EF Core with SQL Server for local development and production-style runs.
-- SQLite-backed integration tests through `WebApplicationFactory`.
-- Swagger in Development.
-- GitHub Actions CI.
-- Dockerfile and Docker Compose for local review.
-- Postman collection for API walkthroughs.
+Mando Backend models a field-sales operation where Sales Representatives visit assigned customers, submit orders, collect payments, and let Managers or Admins review operational and financial activity.
+
+The project is intentionally backend-focused. The repository contains one API project and one integration test project, plus supporting documentation, Docker assets, screenshots, a Postman starter collection, and GitHub Actions CI.
+
+## Why This Project Exists
+
+Field-sales systems need more than CRUD. They need role-aware access, customer assignment boundaries, visit lifecycle rules, financial review, balance visibility, auditability, and operational reporting. Mando exists to demonstrate those backend concerns in a compact, reviewable codebase suitable for GitHub, CV discussions, and technical interviews.
+
+## Business Overview
+
+The core workflow is grounded in a realistic beverage/retail field-sales scenario:
+
+1. Admin or Manager creates users, products, and customers.
+2. Customers are assigned to SalesRep users.
+3. A SalesRep starts a GPS-validated visit for an assigned active customer.
+4. Orders are created inside active visits using product prices from the database.
+5. Payments are submitted inside active visits and remain pending until review.
+6. Manager or Admin users approve, reject, or reverse payments.
+7. Customer balances, statements, ledgers, dashboards, reports, notifications, and audit logs reflect the workflow.
+
+![Mando business modules](docs/assets/graphics/business-modules.svg)
+
+## Repository Highlights
+
+| Area | What is in the repository |
+| --- | --- |
+| Solution shape | `Mando.Api` ASP.NET Core Web API and `Mando.Api.IntegrationTests` xUnit integration tests |
+| Domain scope | Field-sales customers, visits, products, orders, payments, reports, dashboard, operations alerts, audit logs, notifications |
+| Persistence | EF Core with SQL Server provider, Identity tables, private visit media metadata, and 23 non-designer migration files |
+| Security | ASP.NET Core Identity, JWT bearer tokens, hashed rotating refresh tokens, role authorization, service-level SalesRep scoping |
+| API docs | Swagger/OpenAPI in Development, bearer security scheme, Postman starter collection, HTTP smoke-test file |
+| Tests | 49 documented integration tests using `WebApplicationFactory` and SQLite |
+| Local review | Docker Compose with SQL Server 2022 and API container |
+| CI | GitHub Actions restore, Release build, test, and format verification |
+
+## Key Features
+
+| Category | Capabilities |
+| --- | --- |
+| Identity & access | Admin, Manager, and SalesRep roles; unique email users; lockout policy; JWT access tokens; hashed refresh tokens; logout revocation |
+| SalesRep isolation | SalesRep users can access assigned customers and their own visits, orders, payments, ledgers, statements, media, and dashboard views |
+| Visit workflow | GPS start/end validation, one active visit per SalesRep, visit attempts, action history, media upload/list/content/delete APIs |
+| Customer finance | Opening balance, credit limit, operational balance, statement, financial ledger, credit profile, financial-setting adjustments |
+| Orders | Active-visit order creation, database product pricing, inactive product rejection, duplicate product rejection, credit-limit enforcement, cancellation workflow |
+| Payments | Pending submission, duplicate normalized reference protection, approve/reject/reverse workflow, legacy `/void` alias, review queue, operations report |
+| Operations | Management dashboards, KPI/range reports, operations alerts, alert review history, performance reports |
+| Platform | Response envelopes, correlation IDs, request logging, health checks, Dockerfile, Docker Compose, CI workflow, documentation package |
 
 ## Architecture Overview
 
-```text
-Mando.sln
-|-- Mando.Api
-|   |-- Controllers        HTTP endpoints and response mapping
-|   |-- Services           Business workflows and query models
-|   |-- Interfaces         Service contracts
-|   |-- DTOs               Request and response contracts
-|   |-- Entities           EF Core domain entities
-|   |-- Data               AppDbContext, migrations, seeders
-|   |-- Configurations     EF Core and options configuration
-|   |-- Middleware         Exception, request logging, correlation ID
-|   |-- Helpers            Cross-cutting helper utilities
-|   |-- Extensions         Startup and pipeline composition
-|   `-- Common             Shared base types and role constants
-`-- Mando.Api.IntegrationTests
-    |-- Auth
-    |-- Contracts
-    `-- Infrastructure
-```
-
-Request flow is intentionally simple:
+![Mando architecture overview](docs/assets/graphics/architecture-overview.svg)
 
 ```text
-Controller -> Workflow/Query Service -> AppDbContext / Identity / helpers -> SQL Server
+API Client -> ASP.NET Core Middleware -> Controllers -> Workflow/Query Services -> EF Core / Identity -> SQL Server
 ```
 
-Controllers stay thin. Business rules live in services, with EF Core constraints and optimistic concurrency used where correctness matters.
+| Layer | Responsibility | Evidence |
+| --- | --- | --- |
+| API pipeline | Correlation IDs, exception handling, Swagger in Development, forwarded headers, HTTPS redirection, request logging, auth, rate limiting | [ApplicationBuilderExtensions.cs](Mando.Api/Extensions/ApplicationBuilderExtensions.cs) |
+| Service registration | Controllers, Swagger/OpenAPI, options validation, SQL Server DbContext, Identity, JWT bearer auth, authorization, health checks, scoped services | [ServiceCollectionExtensions.cs](Mando.Api/Extensions/ServiceCollectionExtensions.cs) |
+| Controllers | Route-level authorization and HTTP response mapping | [Mando.Api/Controllers](Mando.Api/Controllers) |
+| Services | Workflow rules, query shaping, SalesRep scoping, transactions, audit and notification side effects | [Mando.Api/Services](Mando.Api/Services) |
+| Persistence | EF Core entities, configurations, migrations, Identity tables, SQL Server provider | [AppDbContext.cs](Mando.Api/Data/AppDbContext.cs) |
+| Tests | In-memory test host with SQLite-backed integration tests | [Mando.Api.IntegrationTests](Mando.Api.IntegrationTests) |
 
-The EF model includes:
+## Project Structure
 
-- Unique customer and product codes.
-- Unique order and payment numbers.
-- Filtered uniqueness for one active visit per SalesRep.
-- Filtered uniqueness for pending payment references per customer.
-- Decimal precision for financial and GPS values.
-- Restrictive delete behavior for operational records.
-- RowVersion concurrency tokens on mutable workflow entities.
-- Action-history tables for customer, product, user, visit, order, and payment transitions.
+```text
+Mando/
+|-- Mando.Api/
+|   |-- Controllers/              # Auth, users, customers, visits, orders, payments, reports, dashboard, operations
+|   |-- Services/                 # Workflow/query services and cross-cutting services
+|   |-- Interfaces/               # Service contracts
+|   |-- Entities/                 # EF Core domain and Identity entities
+|   |-- DTOs/                     # Request/response contracts
+|   |-- Configurations/           # EF Core and options configuration
+|   |-- Data/                     # AppDbContext, seeders, migrations
+|   |-- Middleware/               # Correlation, request logging, exception handling
+|   |-- Filters/                  # API response envelope filter
+|   |-- Helpers/                  # Normalization, row-version, geo, response helpers
+|   |-- Dockerfile
+|   `-- SmokeTests.http
+|-- Mando.Api.IntegrationTests/  # xUnit integration tests with WebApplicationFactory and SQLite
+|-- docs/                        # Architecture, security, testing, deployment, workflow, and limitation docs
+|-- docs/screenshots/            # Existing sanitized screenshots only
+|-- docs/assets/graphics/        # README SVG diagrams
+|-- postman/                     # Postman starter collection
+|-- .github/workflows/ci.yml
+|-- docker-compose.yml
+|-- .env.example
+`-- Mando.sln
+```
 
-This repository emphasizes thin controllers, service-driven business logic, clear separation of concerns, consistent API response contracts, workflow-oriented design, EF Core discipline, production-aware startup behavior, integration-testable architecture, operational realism, and reviewer-friendly organization.
+## Technology Stack
 
-## Security Highlights
+![Mando technology stack](docs/assets/graphics/technology-stack.svg)
 
-- JWT keys are required, must be at least 32 characters, and placeholder values are rejected.
-- Tokens are rejected if the user is inactive, locked out, deleted, has a changed security stamp, or has changed roles.
-- A fallback authorization policy requires authentication unless an endpoint explicitly allows anonymous access.
-- Fixed-window rate limiting protects login and high-impact workflow mutations.
-- SalesRep reads and writes are scoped in services so reps cannot access another rep's customers, visits, orders, payments, or notifications.
-- Payment self-review is blocked.
-- Visit media is stored in private local storage and served only through authorized API endpoints.
-- Request logging avoids request bodies and sensitive credential payloads.
+| Concern | Technology |
+| --- | --- |
+| Runtime | .NET 9, ASP.NET Core Web API |
+| API documentation | Swashbuckle / Swagger UI, OpenAPI v1 document |
+| Authentication | ASP.NET Core Identity, JWT Bearer authentication |
+| Authorization | Role attributes, fallback authorization policy, service-level scoping |
+| Database | EF Core 9 with SQL Server provider |
+| Test database | SQLite through `WebApplicationFactory` |
+| Testing | xUnit, FluentAssertions, Microsoft.AspNetCore.Mvc.Testing, coverlet collector package |
+| Containers | Multi-stage .NET Dockerfile, Docker Compose |
+| CI | GitHub Actions on `push` to `main` and pull requests |
 
-See [docs/security.md](docs/security.md) for the authorization matrix and remaining risks.
+## Security Features
 
-## Rate Limiting
+![Mando security overview](docs/assets/graphics/security-overview.svg)
 
-Rate limits are configured through `RateLimiting:*` settings and can be overridden with environment variables.
+| Control | Implementation |
+| --- | --- |
+| Default protected API | Fallback authorization policy requires authentication unless a route explicitly allows anonymous access |
+| Identity policy | Unique emails, password requirements, lockout after failed attempts |
+| JWT validation | Issuer, audience, signing key, lifetime, zero clock skew, active user state, lockout state, security stamp, current role set |
+| Refresh tokens | Random refresh tokens stored as SHA-256 hashes, rotated on refresh, revoked on logout, reuse detection timestamp |
+| Generic login errors | Public login responses do not reveal whether the user is missing, inactive, locked out, or using a wrong password |
+| Rate limiting | Fixed-window policies for login and selected sensitive workflow mutations |
+| SalesRep scoping | Enforced inside services for customer, visit, order, payment, ledger, statement, media, and dashboard access |
+| Private media | Visit images are stored under private application storage and served through authorized API endpoints |
+| Safe logging | Request logging records route metadata and user identifiers, not request bodies or credential payloads |
+| Startup guardrails | Automatic migrations and seeding are blocked outside Development and Testing |
 
-| Policy | Endpoints | Default | Development/Docker default |
-| --- | --- | --- | --- |
-| `Login` | `POST /api/auth/login` | 10 requests / 60 seconds | 60 requests / 60 seconds |
-| `SensitiveMutation` | Payment approve/reject/reverse/void, visit start/end | 30 requests / 60 seconds | 120 requests / 60 seconds |
+More detail: [docs/security-model.md](docs/security-model.md), [docs/security.md](docs/security.md), and [docs/authorization-matrix.md](docs/authorization-matrix.md).
 
-429 responses use the standard error envelope with code `rate_limit_exceeded` and include `Retry-After` when the limiter can calculate it.
+## Authentication & Authorization
+
+| Role | Intended access |
+| --- | --- |
+| Admin | User administration, customer/product management, financial settings, management reporting, payment review, audit logs |
+| Manager | Customer/product management, payment review, dashboards, operations, reporting, audit log review |
+| SalesRep | Assigned customers, own visits, own orders, own payments, own dashboard, scoped customer financial views |
+
+![Mando request flow](docs/assets/graphics/request-flow.svg)
+
+Authentication routes:
+
+| Route | Access | Notes |
+| --- | --- | --- |
+| `POST /api/auth/login` | Anonymous | Rate-limited; returns access token and refresh token on success |
+| `POST /api/auth/refresh` | Anonymous | Rotates valid refresh tokens |
+| `POST /api/auth/logout` | Authenticated | Revokes the submitted refresh token |
+| `GET /api/auth/me` | Authenticated | Returns the current authenticated user profile |
+
+## Database & Financial Model
+
+Mando uses SQL Server for the application database and EF Core migrations under [Mando.Api/Data/Migrations](Mando.Api/Data/Migrations). Integration tests replace SQL Server with SQLite for isolated test execution.
+
+| Data area | Tables/entities represented |
+| --- | --- |
+| Identity | ASP.NET Core Identity users, roles, claims, tokens, logins |
+| Core domain | Customers, products, visits, visit images, visit attempts |
+| Commercial workflow | Orders, order items, payments |
+| Financial review | Customer balances derived from orders and approved payments, financial ledger, statements, credit profile |
+| Operations | Notifications, operations alert reviews, audit logs, action-history tables |
+| Auth sessions | Refresh tokens with hash, expiry, revocation, replacement, and reuse-detection fields |
+
+Customer balance is operational and derived:
+
+```text
+opening balance + non-cancelled order totals - currently approved payments
+```
+
+Financial integrity controls include decimal precision, unique customer/product/order/payment codes or numbers, normalized pending payment reference uniqueness, row-version concurrency tokens, restrictive deletes for financial relationships, and service-level financial locks around sensitive workflows.
+
+More detail: [docs/financial-model.md](docs/financial-model.md).
+
+## API Documentation
+
+Swagger is enabled only in Development. The OpenAPI configuration defines `Mando API` version `v1` and includes a bearer token security definition.
+
+| Area | Example routes |
+| --- | --- |
+| Auth | `POST /api/auth/login`, `POST /api/auth/refresh`, `GET /api/auth/me` |
+| Users | `GET /api/users`, `POST /api/users`, `PATCH /api/users/{id}/role` |
+| Customers | `GET /api/customers`, `POST /api/customers`, `GET /api/customers/{id}/statement` |
+| Visits | `POST /api/visits/start`, `POST /api/visits/{id}/end`, `GET /api/visits/{id}/timeline` |
+| Visit media | `POST /api/visits/{id}/images`, `GET /api/visits/images/{imageId}/content` |
+| Products | `GET /api/products`, `POST /api/products`, `PATCH /api/products/{id}/status` |
+| Orders | `POST /api/orders`, `GET /api/orders`, `PATCH /api/orders/{id}/cancel` |
+| Payments | `POST /api/payments`, `PATCH /api/payments/{id}/approve`, `PATCH /api/payments/{id}/reverse` |
+| Reports | `GET /api/reports/*`, `GET /api/reports/performance/*` |
+| Operations | `GET /api/operations/dashboard/today`, `GET /api/operations/alerts` |
+| Health | `GET /health/live`, `GET /health/ready` |
+
+Supporting API assets:
+
+| Asset | Purpose |
+| --- | --- |
+| [docs/api-overview.md](docs/api-overview.md) | Route-area summary |
+| [postman/Mando.Api.postman_collection.json](postman/Mando.Api.postman_collection.json) | Starter Postman collection for local review |
+| [docs/postman-collection-plan.md](docs/postman-collection-plan.md) | Manual Postman revalidation plan |
+| [Mando.Api/SmokeTests.http](Mando.Api/SmokeTests.http) | HTTP client smoke-test workflow |
 
 ## Testing
 
-Integration tests cover authentication, JWT rejection, role authorization, rate limiting, SalesRep data isolation, duplicate payment reference rejection, invalid order products, and GPS validation.
+![Mando testing pipeline](docs/assets/graphics/testing-pipeline.svg)
 
-Run:
+The integration tests use `WebApplicationFactory<Program>`, the Testing environment, a per-run SQLite database, and seeded Identity users.
+
+| Coverage area | Examples |
+| --- | --- |
+| Authentication | Login failures, current user, refresh-token issue/rotation/reuse/expiry/logout, stale token rejection |
+| Authorization | Role restrictions, protected endpoints, SalesRep denial for management reports |
+| SalesRep isolation | Cross-rep customer, visit, order, payment, ledger, and dashboard access boundaries |
+| Visit workflow | GPS validation, active visit rule, invalid completion outcome, double-end rejection |
+| Orders | Database pricing, duplicate product lines, inactive products, credit-limit enforcement |
+| Payments | Normalized references, approval, rejection, reversal, legacy void alias, ledger reversal movements |
+| Operations | Dashboard/report access checks and rate-limit behavior |
+
+Run locally:
 
 ```powershell
 dotnet restore Mando.sln
 dotnet build Mando.sln
 dotnet test Mando.sln
-dotnet format Mando.sln --verify-no-changes
 ```
 
-Current test project: `Mando.Api.IntegrationTests`.
+Current documented test count: **49 integration tests**. Remaining test gaps are documented in [docs/testing-strategy.md](docs/testing-strategy.md) and [docs/known-limitations.md](docs/known-limitations.md).
 
-GitHub Actions CI restores, builds, tests, and verifies formatting on pull requests and pushes to `main`.
+## Docker
 
-## Local Development
+![Mando deployment overview](docs/assets/graphics/deployment-overview.svg)
 
-Configure secrets first. The committed appsettings files intentionally do not contain real JWT keys or seed passwords.
+Docker assets are provided for local review:
 
-Example with user-secrets:
+| Asset | Behavior |
+| --- | --- |
+| [Mando.Api/Dockerfile](Mando.Api/Dockerfile) | Multi-stage .NET 9 build and ASP.NET runtime image exposing port `8080` |
+| [docker-compose.yml](docker-compose.yml) | Runs `mando-api` with SQL Server 2022, maps API to `8080`, maps SQL Server to host `14333` |
+| [.env.example](.env.example) | Placeholder values for JWT key, SQL Server password, seed passwords, rate limits, and demo settings |
 
-```powershell
-dotnet user-secrets set "Jwt:Key" "replace-with-at-least-32-random-characters" --project Mando.Api
-dotnet user-secrets set "SeedAdmin:Password" "replace-with-a-local-password" --project Mando.Api
-dotnet user-secrets set "SeedManager:Password" "replace-with-a-local-password" --project Mando.Api
-dotnet user-secrets set "SeedSalesReps:0:Password" "replace-with-a-local-password" --project Mando.Api
-```
-
-Then:
-
-```powershell
-dotnet ef database update --project Mando.Api
-dotnet run --project Mando.Api
-```
-
-Swagger is available in Development after the API starts.
-
-## Docker Setup
-
-Docker support is included for local review:
+Typical local review flow:
 
 ```powershell
 copy .env.example .env
 docker compose up --build
+docker compose ps
+docker compose logs
+docker compose down
 ```
 
-Replace every `REPLACE_WITH...` value in `.env` before running. The local `.env` file is ignored by Git and must not be committed.
+> [!WARNING]
+> Docker Compose is documented for local review. It is not a production deployment recipe.
 
-Docker Compose starts SQL Server and the API, applies migrations, and seeds local review accounts when configured. It is intended for local portfolio review, not production deployment.
+## CI/CD
 
-Required `.env` variables for Docker Compose:
+CI is defined in [.github/workflows/ci.yml](.github/workflows/ci.yml).
 
-| Variable | Purpose |
+| Trigger | Runner | Steps |
+| --- | --- | --- |
+| Pull request | `ubuntu-latest` | Checkout, setup .NET 9, restore, Release build, test, format check |
+| Push to `main` | `ubuntu-latest` | Checkout, setup .NET 9, restore, Release build, test, format check |
+
+The workflow verifies formatting with:
+
+```powershell
+dotnet format Mando.sln --verify-no-changes --no-restore --verbosity minimal
+```
+
+## Logging & Observability
+
+| Capability | Implementation |
 | --- | --- |
-| `JWT_KEY` | Local JWT signing key, at least 32 characters |
-| `MSSQL_SA_PASSWORD` | SQL Server SA password for the local container |
-| `SEED_ADMIN_PASSWORD` | Local admin seed password |
-| `SEED_MANAGER_PASSWORD` | Local manager seed password |
-| `SEED_SALES_REP_0_PASSWORD` | Local SalesRep seed password |
-| `SEED_SALES_REP_1_PASSWORD` | Local SalesRep seed password |
-| `SEED_SALES_REP_2_PASSWORD` | Local SalesRep seed password |
+| Correlation ID | `X-Correlation-ID` request/response header normalization, stored in `HttpContext.TraceIdentifier` |
+| Request logs | Method, path, status code, elapsed time, trace ID, user ID, remote IP, query parameter count, content metadata, protocol, user agent |
+| Noise reduction | Health and Swagger request logs are debug-level when successful |
+| Global exceptions | Structured error mapping for concurrency conflicts, duplicate resources, transient database failures, forbidden access, cancellations, and unexpected errors |
+| Health checks | `/health/live` for process liveness, `/health/ready` for database connectivity and pending migration detection |
+| Response shape | Success/error envelopes include traceability metadata |
 
-Optional rate-limit and seed account display values are documented in [.env.example](.env.example).
+## Getting Started
+
+### Prerequisites
+
+| Requirement | Notes |
+| --- | --- |
+| .NET SDK | .NET 9 SDK |
+| Database | SQL Server LocalDB, SQL Server Developer Edition, or the SQL Server Docker Compose service |
+| EF Core CLI | Required when applying migrations manually with `dotnet ef` |
+| Docker Desktop | Optional, only for Docker Compose review |
+
+### Local API Run
+
+```powershell
+dotnet restore Mando.sln
+dotnet user-secrets set "Jwt:Key" "replace-with-at-least-32-random-characters" --project Mando.Api
+dotnet ef database update --project Mando.Api
+dotnet run --project Mando.Api
+```
+
+Development launch settings expose:
+
+| Profile | URL |
+| --- | --- |
+| HTTP | `http://localhost:5295` |
+| HTTPS | `https://localhost:7203` and `http://localhost:5295` |
+
+Swagger is available in Development at `/swagger`.
+
+### Optional Seed Users
+
+Set seed passwords before enabling startup seeding:
+
+```powershell
+dotnet user-secrets set "SeedAdmin:Password" "replace-with-a-local-password" --project Mando.Api
+dotnet user-secrets set "SeedManager:Password" "replace-with-a-local-password" --project Mando.Api
+dotnet user-secrets set "SeedSalesReps:0:Password" "replace-with-a-local-password" --project Mando.Api
+dotnet user-secrets set "SeedSalesReps:1:Password" "replace-with-a-local-password" --project Mando.Api
+dotnet user-secrets set "SeedSalesReps:2:Password" "replace-with-a-local-password" --project Mando.Api
+dotnet user-secrets set "Startup:RunSeedOnStartup" "true" --project Mando.Api
+```
+
+Set `SeedData:Enabled=true` only when you also want demo products, customers, visits, orders, and payments.
+
+## Configuration
+
+| Key | Purpose |
+| --- | --- |
+| `ConnectionStrings:DefaultConnection` | SQL Server database connection |
+| `Jwt:Key` | HMAC signing key; required and at least 32 characters |
+| `Jwt:Issuer` | Expected token issuer |
+| `Jwt:Audience` | Expected token audience |
+| `Jwt:ExpiryMinutes` | Access-token lifetime; validated range is 1 to 1440 minutes |
+| `Jwt:RefreshTokenExpiryDays` | Refresh-token lifetime; validated range is 1 to 90 days |
+| `RateLimiting:Login:*` | Login fixed-window permit limit and window |
+| `RateLimiting:SensitiveMutation:*` | Fixed-window throttling for visit lifecycle and payment review mutations |
+| `Gps:*` | Visit start/end distance and accuracy thresholds |
+| `ForwardedHeaders:*` | Optional reverse-proxy forwarding configuration |
+| `Startup:ApplyMigrationsOnStartup` | Applies migrations only when allowed by environment guard |
+| `Startup:RunSeedOnStartup` | Runs seed users/data only when allowed by environment guard |
+| `SeedAdmin:*`, `SeedManager:*`, `SeedSalesReps:*` | Development/testing seed accounts when seeding is enabled |
+| `SeedData:Enabled` | Enables optional demo products, customers, visits, orders, and payments |
+
+Production-like runs should provide secrets through environment variables, user-secrets, or a secret manager. Real JWT keys, SQL passwords, and seed passwords are intentionally not committed.
+
+## Demo Data
+
+When seeding is enabled in Development or Testing:
+
+| Seed area | Data created |
+| --- | --- |
+| Roles | `Admin`, `Manager`, `SalesRep` |
+| Users | Configured Admin, Manager, and three SalesRep accounts |
+| Products | 12 beverage products, including one inactive demo product |
+| Customers | 10 Baghdad-area demo customers assigned across SalesRep users |
+| Workflow data | Completed visits, orders, and payments with approved, pending, rejected, and reversed examples |
+
+Suggested local-only emails are configured in Development settings and `.env.example`; passwords are not committed.
+
+| Role | Email |
+| --- | --- |
+| Admin | `admin@mando.local` |
+| Manager | `manager@mando.local` |
+| SalesRep | `ali@mando.local` |
+| SalesRep | `sara@mando.local` |
+| SalesRep | `omar@mando.local` |
+
+More detail: [docs/demo-scenario.md](docs/demo-scenario.md).
 
 ## Screenshots
 
-### Swagger
+Only existing repository screenshots are used here. No generated or placeholder screenshots were added for this README.
 
-![Swagger UI](docs/screenshots/swagger.png)
+| Swagger | Docker |
+| --- | --- |
+| <img src="docs/screenshots/swagger.png" alt="Swagger UI showing Mando API endpoint catalog" width="520"> | <img src="docs/screenshots/docker.png" alt="Docker Compose runtime for Mando API and SQL Server" width="520"> |
 
-### Health Checks
+| Health live | Health ready |
+| --- | --- |
+| <img src="docs/screenshots/health-live.png" alt="Health live endpoint response" width="520"> | <img src="docs/screenshots/health-ready.png" alt="Health ready endpoint response" width="520"> |
 
-![Health Live](docs/screenshots/health-live.png)
+| Login | Current user |
+| --- | --- |
+| <img src="docs/screenshots/postman-login.png" alt="Sanitized login workflow response" width="520"> | <img src="docs/screenshots/postman-me.png" alt="Sanitized current user response" width="520"> |
 
-![Health Ready](docs/screenshots/health-ready.png)
+| Customers | Visits |
+| --- | --- |
+| <img src="docs/screenshots/postman-customers.png" alt="Sanitized customers response" width="520"> | <img src="docs/screenshots/postman-visits.png" alt="Sanitized visits response" width="520"> |
 
-### Docker Runtime
+| Payments | Dashboard |
+| --- | --- |
+| <img src="docs/screenshots/postman-payments.png" alt="Sanitized payments response" width="520"> | <img src="docs/screenshots/postman-dashboard.png" alt="Sanitized dashboard response" width="520"> |
 
-![Docker Runtime](docs/screenshots/docker.png)
+Screenshot rules and replacement notes: [docs/screenshots/README.md](docs/screenshots/README.md).
 
-### Authentication Flow
+## Design Decisions
 
-![Login Workflow](docs/screenshots/postman-login.png)
+| Decision | Reason |
+| --- | --- |
+| Backend-only scope | Keeps the project focused on API, security, persistence, workflows, and testing rather than frontend breadth |
+| Service-level scoping | Prevents SalesRep access rules from depending only on controller attributes |
+| Derived balances | Keeps current balance based on opening balance, non-cancelled orders, and currently approved payments |
+| Database product prices | Prevents clients from submitting trusted order prices |
+| Normalized payment references | Blocks duplicate pending non-cash references despite casing, spaces, or punctuation differences |
+| Row-version concurrency | Protects lifecycle mutations for customers, visits, orders, products, and payments |
+| Private visit media | Keeps images out of public static serving and requires authorized API access |
+| Honest limitations | Separates portfolio-ready backend capabilities from production hosting, ERP, SaaS, and accounting claims |
 
-![Authenticated User](docs/screenshots/postman-me.png)
+## Production-Ready Capabilities
 
-### Field Sales Workflows
+Mando includes several production-oriented backend capabilities:
 
-![Customers](docs/screenshots/postman-customers.png)
+| Capability | Present in repository |
+| --- | --- |
+| Secure auth foundation | Identity, JWT bearer validation, hashed refresh tokens, lockout, stale-token checks |
+| Authorization model | Role-based routes plus service-level scoping for SalesRep data isolation |
+| Persistence discipline | SQL Server provider, EF Core migrations, precision, indexes, constraints, row-version concurrency |
+| Operational health | Liveness/readiness endpoints with database readiness and pending migration detection |
+| Observability | Correlation IDs, structured request logging, global exception mapping |
+| Local container review | Dockerfile and Docker Compose for API plus SQL Server |
+| CI quality gate | Restore, build, test, and format verification on GitHub Actions |
+| Documentation | Security model, authorization matrix, financial model, workflows, testing strategy, deployment notes, known limitations |
 
-![Visits](docs/screenshots/postman-visits.png)
-
-![Payments](docs/screenshots/postman-payments.png)
-
-### Operations Dashboard
-
-![Dashboard](docs/screenshots/postman-dashboard.png)
-
-## Postman Collection
-
-A starter collection is provided at [postman/Mando.Api.postman_collection.json](postman/Mando.Api.postman_collection.json). It includes login, current user, core list endpoints, and main workflow requests.
-
-Run the login request first and store the returned JWT in the collection variable before calling authenticated endpoints.
-
-## Documentation
-
-Additional reviewer documentation lives in:
-
-- [docs/security.md](docs/security.md)
-- [docs/deployment.md](docs/deployment.md)
-- [docs/screenshots/README.md](docs/screenshots/README.md)
+> [!NOTE]
+> These are production-oriented capabilities inside the codebase. Docker Compose remains a local-review setup, and production hosting, secret management, infrastructure, monitoring, and release automation are not included.
 
 ## Limitations
 
-- No refresh-token flow yet.
-- No production-grade external file storage for visit images.
-- Audit logs are application append-only, not cryptographically tamper-evident.
-- Docker Compose is intended for local portfolio review, not production deployment.
-- SQL Server is the production database target; SQLite is used only for integration-test speed and isolation.
+Real limitations documented by the repository:
 
-## Future Improvements
+- Test coverage was expanded to 49 integration tests, but the previous 90 to 130 test target was not reached.
+- Docker Compose is for local review and is not a production deployment recipe.
+- SQL Server migration execution should be verified on the target developer machine before publication.
+- Visit images use local private storage, not cloud object storage.
+- Audit logs are application-level records and are not cryptographically tamper-evident.
+- The repository has no frontend, mobile app, real payment gateway, SaaS tenancy, ERP inventory, warehouse module, or external accounting integration.
+- The Postman collection is a starter collection and should be revalidated against the final running API after route changes.
+- Screenshots are existing local assets; this README did not add new runtime screenshots.
 
-- Add refresh tokens and token revocation management.
-- Add SQL Server-backed concurrency stress tests for payment/order workflows.
-- Add OpenAPI examples for common workflow requests.
-- Add more end-to-end business workflow screenshots or a short demo video.
+More detail: [docs/known-limitations.md](docs/known-limitations.md).
 
-## Interview Explanation
+## Future Roadmap
 
-Mando is meant to demonstrate backend judgment through a realistic field-sales domain. Field reps can only operate on assigned customers, visits gate order and payment creation, payments require manager or admin review, customer balances are derived from orders and approved payments, and important transitions are audited.
+Grounded future improvements already reflected in project documentation:
 
-The code avoids a heavy architecture rewrite while still separating HTTP concerns from workflow and query services. That keeps business rules testable, reviewable, and close to the workflows they protect.
+- Expand tests toward the 90 to 130 meaningful integration-test target.
+- Add more SQL Server-backed constraint, migration, and concurrency tests.
+- Add report result-shape and pagination tests.
+- Add visit media upload/content authorization tests.
+- Revalidate and expand the Postman collection after API changes.
+- Capture fresh screenshots from a clean local run when publishing a refreshed release.
+- Consider optional product stock lite only if it remains within the field-sales scope.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## Author
+
+Mando Backend is maintained as a backend portfolio project. The repository license identifies **Mando Backend** as the 2026 copyright holder.

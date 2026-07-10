@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Mando backend architecture overview</title>
+  <desc id="desc">Architecture diagram showing API consumers, ASP.NET Core middleware, controllers, workflow and query services, EF Core, SQL Server, and private visit media storage.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/>
+    </marker>
+    <style>
+      .bg{fill:#f7fafc}
+      .panel{fill:#ffffff;stroke:#cbd5e1;stroke-width:2}
+      .panel-dark{fill:#102a43;stroke:#102a43;stroke-width:2}
+      .panel-teal{fill:#e6fffb;stroke:#0f766e;stroke-width:2}
+      .panel-blue{fill:#eff6ff;stroke:#2563eb;stroke-width:2}
+      .panel-amber{fill:#fff7ed;stroke:#d97706;stroke-width:2}
+      .panel-green{fill:#ecfdf5;stroke:#059669;stroke-width:2}
+      .title{font:700 32px Arial,Helvetica,sans-serif;fill:#102a43}
+      .subtitle{font:400 17px Arial,Helvetica,sans-serif;fill:#486581}
+      .label{font:700 18px Arial,Helvetica,sans-serif;fill:#102a43}
+      .label-light{font:700 18px Arial,Helvetica,sans-serif;fill:#ffffff}
+      .small{font:400 14px Arial,Helvetica,sans-serif;fill:#486581}
+      .small-light{font:400 14px Arial,Helvetica,sans-serif;fill:#d9e2ec}
+      .arrow{stroke:#0f766e;stroke-width:3;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="720"/>
+  <text class="title" x="60" y="62">Mando Backend Architecture</text>
+  <text class="subtitle" x="60" y="92">ASP.NET Core field-sales API with service-level business rules, EF Core persistence, and local-review Docker support.</text>
+
+  <rect class="panel-blue" x="60" y="145" width="170" height="110" rx="8"/>
+  <text class="label" x="90" y="182">API Clients</text>
+  <text class="small" x="88" y="210">Swagger UI</text>
+  <text class="small" x="88" y="232">Postman</text>
+  <text class="small" x="88" y="254">HTTP smoke tests</text>
+
+  <rect class="panel-dark" x="300" y="122" width="280" height="158" rx="8"/>
+  <text class="label-light" x="326" y="158">ASP.NET Core Pipeline</text>
+  <text class="small-light" x="326" y="188">Correlation ID</text>
+  <text class="small-light" x="326" y="212">Exception handling</text>
+  <text class="small-light" x="326" y="236">Request logging</text>
+  <text class="small-light" x="326" y="260">Auth, rate limiting, routing</text>
+
+  <rect class="panel" x="655" y="122" width="230" height="158" rx="8"/>
+  <text class="label" x="682" y="158">Controllers</text>
+  <text class="small" x="682" y="188">Auth, Users, Customers</text>
+  <text class="small" x="682" y="212">Visits, Orders, Payments</text>
+  <text class="small" x="682" y="236">Reports, Dashboard</text>
+  <text class="small" x="682" y="260">Operations, Audit, Health</text>
+
+  <rect class="panel-teal" x="955" y="122" width="260" height="158" rx="8"/>
+  <text class="label" x="982" y="158">Workflow &amp; Query Services</text>
+  <text class="small" x="982" y="188">Business rules</text>
+  <text class="small" x="982" y="212">SalesRep scoping</text>
+  <text class="small" x="982" y="236">Financial guards</text>
+  <text class="small" x="982" y="260">Audit and notifications</text>
+
+  <rect class="panel" x="300" y="390" width="250" height="160" rx="8"/>
+  <text class="label" x="328" y="426">Cross-Cutting Services</text>
+  <text class="small" x="328" y="456">ASP.NET Core Identity</text>
+  <text class="small" x="328" y="480">JWT + refresh tokens</text>
+  <text class="small" x="328" y="504">Health checks</text>
+  <text class="small" x="328" y="528">Response envelopes</text>
+
+  <rect class="panel-green" x="655" y="390" width="230" height="160" rx="8"/>
+  <text class="label" x="682" y="426">EF Core Model</text>
+  <text class="small" x="682" y="456">AppDbContext</text>
+  <text class="small" x="682" y="480">23 migrations</text>
+  <text class="small" x="682" y="504">Indexes and precision</text>
+  <text class="small" x="682" y="528">Row-version tokens</text>
+
+  <rect class="panel-amber" x="955" y="360" width="260" height="220" rx="8"/>
+  <text class="label" x="982" y="396">Persistence</text>
+  <text class="small" x="982" y="428">SQL Server for application data</text>
+  <text class="small" x="982" y="452">Identity tables</text>
+  <text class="small" x="982" y="476">Customers, products, visits</text>
+  <text class="small" x="982" y="500">Orders, payments, ledgers</text>
+  <text class="small" x="982" y="524">Private visit image storage</text>
+  <text class="small" x="982" y="548">SQLite only for integration tests</text>
+
+  <path class="arrow" d="M230 200 H285"/>
+  <path class="arrow" d="M580 200 H640"/>
+  <path class="arrow" d="M885 200 H940"/>
+  <path class="arrow" d="M1085 280 V346"/>
+  <path class="arrow" d="M955 470 H900"/>
+  <path class="arrow" d="M655 470 H565"/>
+  <path class="arrow" d="M425 390 V300"/>
+
+  <rect x="60" y="630" width="1155" height="42" rx="8" fill="#e0f2fe" stroke="#0284c7"/>
+  <text class="small" x="86" y="656">Design principle: controllers translate HTTP; services enforce workflow rules and data scope; EF Core carries persistence integrity; docs and tests describe the public contract.</text>
+</svg>
